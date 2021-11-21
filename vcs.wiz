@@ -1,5 +1,4 @@
 
-
 namespace vcs {
     namespace sync {
         var vsync @ 0x00 : u8;
@@ -223,14 +222,10 @@ namespace vcs {
         var pvp_mvm @ 0x37 : u8;
     }
 }
-inline func VSYNC_a() {
-  vcs.sync.vsync = a;
-}
 
-inline func WSYNC_a() {
-  vcs.sync.wsync = a;
-}
 let WSYNC = vcs.sync.wsync;
+let NUSIZ0 = vcs.control.player1;
+let NUSIZ1 = vcs.control.player2;
 let HMBL = vcs.hmove.ball;
 let RESP = vcs.reset.players;
 let RESP0 = vcs.reset.player1;
@@ -242,12 +237,14 @@ let REFP0 = vcs.reflect.player1;
 let REFP1 = vcs.reflect.player2;
 let CXCLR = vcs.collision.clear;
 let VDELP0 = vcs.vdelay.player1;
+let VDELP1 = vcs.vdelay.player1;
 let HMCLR = vcs.hmove.clear;
+let COLUP = vcs.color.players;
 let COLUP0 = vcs.color.player1;
 let COLUP1 = vcs.color.player2;
 let COLUPF = vcs.color.fg;
 let COLUBK = vcs.color.bg;
-let GRP0 = vcs.pattern.player2;
+let GRP0 = vcs.pattern.player1;
 let GRP1 = vcs.pattern.player2;
 let PF0 = vcs.pattern.playfield1;
 let PF1 = vcs.pattern.playfield2;
@@ -258,6 +255,23 @@ let CXP0FB = vcs.collision.player1_vs_playfield;
 let CXPPMM = vcs.collision.pvp_mvm;
 let CTRLPF = vcs.control.playfield;
 let RESBL = vcs.reset.ball;
+
+let AUDV = vcs.audio.volumes;
+let AUDV0 = vcs.audio.volume1;
+let AUDV1 = vcs.audio.volume2;
+
+let AUDF = vcs.audio.frequencies;
+let AUDF0 = vcs.audio.frequency1;
+let AUDF1 = vcs.audio.frequency2;
+let AUDC = vcs.audio.tones;
+let AUDC0 = vcs.audio.tone1;
+let AUDC1 = vcs.audio.tone2;
+let INTIM = vcs.timer.value;
+let TIM64T = vcs.timer.set64;
+let VBLANK = vcs.sync.vblank;
+
+let SWCHB = vcs.io.port_b;
+let SWCHA = vcs.io.port_a;
 namespace riot {
   
  /*
