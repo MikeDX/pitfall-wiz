@@ -1834,28 +1834,108 @@ notJumping:
   a = a | patOfsHarry; //    ora    patOfsHarry      ; 3                 ..or Harry kneeing..
   a = a | atLiana; //    ora    atLiana          ; 3                 ..or Harry at liana?
   goto noFire if !zero; //    bne    .noFire          ; 2³                 yes, skip new jump
-    lda    INPT4-$30        ; 3
-    and    #%10000000       ; 2
-    cmp    fireButton       ; 3
-    sta    fireButton       ; 3
-    beq    .noFire          ; 2³
-    tax                     ; 2
-    bmi    .noFire          ; 2³
-; start jump:
-    lda    #1               ; 2                 start jumping sequence
-    sta    jumpIndex        ; 3
-  IF SCREENSAVER
-    sta    SS_Delay         ; 3
-  ELSE
-    FILL_NOP 2
-  ENDIF
-    lda    #SOUND_JUMP      ; 2
-    sta    soundIdx         ; 3
-    dec    yPosHarry        ; 5                 move Harry up
-.saveDir:
-    lda    joystick         ; 3
-    sta    oldJoystick      ; 3
-.noFire:
+  a = INPT4; //     lda    INPT4-$30        ; 3
+  a = a & 0b10000000; //    and    #%10000000       ; 2
+  cmp(a,fireButton); //    cmp    fireButton       ; 3
+  fireButton = a; //    sta    fireButton       ; 3
+  goto noFire if zero; //    beq    .noFire          ; 2³
+  x = a; //    tax                     ; 2
+  goto noFire if negative; //    bmi    .noFire          ; 2³
+//; start jump:
+  a = 1; //    lda    #1               ; 2                 start jumping sequence
+  jumpIndex = a; //    sta    jumpIndex        ; 3
+//  IF SCREENSAVER
+  SS_Delay = a; //    sta    SS_Delay         ; 3
+//  ELSE
+//    FILL_NOP 2
+//  ENDIF
+  a = SOUND_JUMP; //  lda    #SOUND_JUMP      ; 2
+  soundIdx = a; //    sta    soundIdx         ; 3
+  yPosHarry --; //    dec    yPosHarry        ; 5                 move Harry up
+saveDir:
+  a = joystick; //    lda    joystick         ; 3
+  oldJoystick = a; //    sta    oldJoystick      ; 3
+noFire:
+  
+//; check for jumping of liana:
+  a = atLiana; //    lda    atLiana          ; 3                 Harry at liana?
+  goto skipJumpOff if zero; //    beq    .skipJumpOff     ; 2³                 no, skip jump of liana
+  a = joystick; //    lda    joystick         ; 3
+  a = a & (0xf0 | MOVE_DOWN); //    and    #~[$f0|MOVE_DOWN]; 2                 joystick down?
+  goto skipJumpOff if !zero; //    bne    .skipJumpOff     ; 2³                 no, skip
+  atLiana = a; //    sta    atLiana          ; 3                  yes, leave "liana mode"
+  a = JUMP_LEN / 2; //    lda    #JUMP_LEN/2      ; 2                 start jump down
+  jumpIndex = a; //    sta    jumpIndex        ; 3
+  jumpMode = a; //    sta    jumpMode         ; 3
+  y = MOVE_RIGHT; //    ldy    #MOVE_RIGHT      ; 2
+  a = hmblDir; //    lda    hmblDir          ; 3                 jump in liana direction
+  goto jumpRight if negative; //    bmi    .jumpRight       ; 2³
+  y = MOVE_LEFT; //    ldy    #MOVE_LEFT       ; 2
+jumpRight:
+  oldJoystick = y; //    sty    oldJoystick      ; 3
+skipJumpOff:
+//  goto skipJumpOff;
+//; check for starting climbing ladder:
+  a = climbPos; //    lda    climbPos         ; 3                 Harry at ladder?
+  goto endStartClimb if !zero; //    bne    .endStartClimb   ; 2³                 yes, skip
+  a = ladderFlag; //    lda    ladderFlag       ; 3                 ladder in scene?
+  goto endStartClimb if zero; //    beq    .endStartClimb   ; 2³                 no, skip
+  a = xPosHarry; //  lda    xPosHarry        ; 3
+  carry = true; //  sec                     ; 2
+  a = a -#68; //  sbc    #68              ; 2
+  cmp(a,15); //    cmp    #15              ; 2                 Harry at x-position of ladder (+/-7)?
+  goto endStartClimb if carry; //    bcs    .endStartClimb   ; 2³                 no, skip
+  a = yPosHarry; //    lda    yPosHarry        ; 3                  yes,
+  cmp(a,84); //    cmp    #84              ; 2                 Harry near bottom of underground
+  goto skipClimbUp if !carry; //    bcc    .skipClimbUp     ; 2³                 no, skip
+  a = joystick; //  lda    joystick         ; 3                  yes,
+  a = a >>> 1; //  lsr                     ; 2                 joystick up?
+  goto skipClimbUp if carry; //  bcs    .skipClimbUp     ; 2³                 no, skip
+  a = LADDER_BOTTOM - 1; //  lda    #LADDER_BOTTOM-1 ; 2                  yes, start climbing up the ladder
+  goto contClimbUp if !zero; //  bne    .contClimbUp     ; 3
+
+skipClimbUp:
+  a = yPosHarry; //lda    yPosHarry        ; 3
+  cmp(a, JUNGLE_GROUND); //    cmp    #JUNGLE_GROUND   ; 2                 Harry at jungle-ground?
+  goto endStartClimb if !zero; //  bne    .endStartClimb   ; 2³                 no, skip
+  a = joystick; //  lda    joystick         ; 3
+  a = a & (0xf0 | MOVE_DOWN); //  and    #~[$f0|MOVE_DOWN]; 2                 joystick down?
+  goto endStartClimb if !zero; //  bne    .endStartClimb   ; 2³                 no, skip
+  a = LADDER_TOP + 1; //  lda    #LADDER_TOP+1    ; 2                  yes, start climbing down the ladder
+contClimbUp:
+  climbPos = a; //    sta    climbPos         ; 3
+  a = SCREENWIDTH / 2 - 4; //    lda    #SCREENWIDTH/2-4 ; 2                 set x-position of..
+  xPosHarry = a; //    sta    xPosHarry        ; 3                 ..Harry at ladder
+endStartClimb:
+
+//; move Harry when swinging at liana:
+  a = atLiana; //    lda    atLiana          ; 3                 Harry at liana?
+  goto skipSwingHarry if zero; //    beq    .skipSwingHarry  ; 2³                 no, skip moving Harry
+//; set x-position of Harry:
+  a = hmblAdd; //    lda    hmblAdd          ; 3
+  a = a >>> 1; //    lsr                     ; 2
+  a = a >>> 1; //    lsr                     ; 2
+  carry = false; //    clc                     ; 2
+  y = hmblDir; //    ldy    hmblDir          ; 3
+  goto isNeg if negative; //    bmi    .isNeg           ; 2³
+  a = a ^ 0xff; //    eor    #$ff             ; 2                 negate
+  carry = true; //    sec                     ; 2
+isNeg:
+  a = a +#75; //    adc    #75              ; 2
+  xPosHarry = a; //    sta    xPosHarry        ; 3
+//; set y-position of Harry:
+  a = 0x29; //    lda    #$29             ; 2
+  carry = true; //  sec                     ; 2
+  a = a -# lianaBottom; //  sbc    lianaBottom      ; 3
+  yPosHarry = a; //  sta    yPosHarry        ; 3
+skipSwingHarry:
+
+  x = 255;
+lx:
+  a = INTIM;
+  WSYNC = x;
+  x--;
+  goto lx;// if !zero; 
   ProcessObjects:
   nop();
   nop();
@@ -2322,26 +2402,6 @@ func CheckTreasures () {
     254, 0, 0, 0,255, 0, 0,255, 0,255,255,255,255,255,255,255
   ];
   
-  const DoublePoint : [u8] = [
-    0b00000000, //; |        |
-    0b00011000, //; |   XX   |
-    0b00011000, //; |   XX   |
-    0b00000000, //; |        |
-    0b00000000, //; |        |
-    0b00011000, //; |   XX   |
-    0b00011000, //; |   XX   |
-    0b00000000, //; |        |
-  ];
-  const Space : [u8] = [
-    0b00000000, // ; |        |
-    0b00000000, // ; |        |
-    0b00000000, // ; |        |
-    0b00000000, // ; |        |
-    0b00000000, // ; |        |
-    0b00000000, // ; |        |
-    0b00000000, // ; |        |
-    0b00000000, // ; |        |    
-  ];
   
   
   const TreasureMask : [u8] = [
@@ -2386,6 +2446,27 @@ func CheckTreasures () {
     0b01000110, //; | X   XX |
     0b00111100, //; |  XXXX  |
   ];
+  const DoublePoint : [u8] = [
+    0b00000000, //; |        |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00000000, //; |        |
+  ];
+  const Space : [u8] = [
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |    
+  ];
+
   const CopyRight5 : [u8] = [
     0b00000000, //; |        |
     0b00000000, //; |        |

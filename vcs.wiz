@@ -272,6 +272,8 @@ let VBLANK = vcs.sync.vblank;
 
 let SWCHB = vcs.io.port_b;
 let SWCHA = vcs.io.port_a;
+let INPT4 = vcs.io.trigger1;
+
 namespace riot {
   
  /*
