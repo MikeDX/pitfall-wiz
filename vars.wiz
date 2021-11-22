@@ -1,0 +1,263 @@
+import "banks";
+
+//;===============================================================================
+//; A S S E M B L E R - S W I T C H E S
+//;===============================================================================
+
+let OPTIMIZE        = false; //                     ; enable some possible optimizations
+let FILL_OPT        = true; //                     ; fill optimized bytes with NOPs
+let SCREENSAVER     = true; //                     ; compile with screensaver code
+
+let TRAINER         = false; //                     ; enable training mode
+let NTSC            = true; //                     ; compile for NTSC
+#[compile_if(NTSC)] let FRAMERATE       = 60; 
+#[compile_if(NTSC)] let STARTTIME       = 0x20;
+#[compile_if(!NTSC)] let FRAMERATE       = 60; 
+#[compile_if(!NTSC)] let STARTTIME       = 0x20; //                   ; $24   ..adjust the PAL timer
+
+
+//;===============================================================================
+//; C O N S T A N T S
+//;===============================================================================
+
+//; initial value for the random number generator:
+let RAND_SEED       = 0xc4                   ; //defines the start scene of the game (c4)
+
+//; color constants:
+#[compile_if(NTSC)] let BROWN           = 0x12;
+#[compile_if(NTSC)] let YELLOW          = 0x1e;
+#[compile_if(NTSC)] let ORANGE          = 0x3e;
+#[compile_if(NTSC)] let RED             = 0x48;
+#[compile_if(NTSC)] let GREEN           = 0xd6;
+#[compile_if(NTSC)] let BLUE            = 0xa4;
+#[compile_if(NTSC)] let YELLOW_GREEN    = 0xc8;
+#[compile_if(NTSC)] let PINK            = 0x4a;
+
+#[compile_if(!NTSC)] let BROWN           = 0x22;
+#[compile_if(!NTSC)] let YELLOW          = 0x2e;
+#[compile_if(!NTSC)] let ORANGE          = 0x4e;
+#[compile_if(!NTSC)] let RED             = 0x68;
+#[compile_if(!NTSC)] let GREEN           = 0x56;
+#[compile_if(!NTSC)] let BLUE            = 0xb4;
+#[compile_if(!NTSC)] let YELLOW_GREEN    = 0x78;
+#[compile_if(!NTSC)] let PINK            = 0x4a;
+
+let BLACK           = 0x00;
+let GREY            = 0x06;
+let WHITE           = 0x0e;
+let DARK_GREEN      = GREEN  - 0x04;
+let DARK_RED        = RED    - 0x06;
+
+//; x constants:
+let SCREENWIDTH     = 160;
+let XMIN_HARRY      = 8                     ; //minimal position before next left scene
+let XMAX_HARRY      = 148                   ; //maximal position before next right scene
+
+//; y-size constants:
+let HARRY_H         = 22                    ; //height of Harry
+let OBJECT_H        = 16                    ; //maximum object height
+let DIGIT_H         = 8                     ; //height of the score and time digits
+let COPYRIGHT_H     = 16                    ; //height of copyright message
+
+//; some defined y-positions of Harry:
+let JUNGLE_GROUND   = 32;
+let UNDER_GROUND    = 86;
+
+//; positions of Harry at ladder:
+let LADDER_TOP      = 11;
+let LADDER_BOTTOM   = 22;
+
+//; lenght of a jump:
+let JUMP_LEN        = 32;
+
+//; Harry pattern ids:
+let ID_KNEEING      = 0;
+let ID_RUNNING4     = 4;                    ; //0..3 are running ids too
+let ID_STANDING     = 5;
+let ID_SWINGING     = 6;
+let ID_CLIMBING     = 7;
+
+//; objectType ids:
+let ID_STATIONARY   = 4;                     ; //stationary logs (0..5 are log types)
+let ID_FIRE         = 6;
+let ID_COBRA        = 7;
+let ID_TREASURES    = 8;                    ; //8..11 are treasures
+let ID_NOTHING      = 12;
+
+//; sceneType constants:
+let HOLE1_SCENE     = 0;
+let HOLE3_SCENE     = 1;
+let CROCO_SCENE     = 4;
+let TREASURE_SCENE  = 5;
+
+//; flags for ladder:
+let NOLADDER        = 0b00000000;
+let WITHLADDER      = 0b11111111;
+
+//; flags for pit color:
+let BLUEPIT         = 0b00000000;
+let BLACKPIT        = 0b10000000;
+
+//; offsets in SoundTab for tunes:
+let SOUND_JUMP      = 0x20;                   ; //Harry is jumping
+let SOUND_TREASURE  = 0x25;                   ; //Harry is collecting a treasure
+let SOUND_DEAD      = 0x31;                   ; //Harry is killed
+let SOUND_FALLING   = 0x53;                   ; //Harry is falling into a hole
+
+//; values for NUSIZx:
+let ONE_COPY        = 0b000;
+let TWO_COPIES      = 0b001;
+let TWO_WIDE_COPIES = 0b010;
+let THREE_COPIES    = 0b011;
+let DOUBLE_SIZE     = 0b101;
+let THREE_MED_COPIES = 0b110;
+let QUAD_SIZE       = 0b111;
+
+
+//; mask for SWCHB:
+let BW_MASK         = 0b1000;                 ; //black and white bit
+
+//; SWCHA joystick bits:
+let MOVE_RIGHT      = 0b0111;
+let MOVE_LEFT       = 0b1011;
+let MOVE_DOWN       = 0b1101;
+let MOVE_UP         = 0b1110;
+let NO_MOVE         = 0b1111;
+let JOY_RIGHT       = ~MOVE_RIGHT & NO_MOVE;
+let JOY_LEFT        = ~MOVE_LEFT  & NO_MOVE;
+let JOY_DOWN        = ~MOVE_DOWN  & NO_MOVE;
+let JOY_UP          = ~MOVE_UP    & NO_MOVE;
+let JOY_HORZ        = JOY_RIGHT|JOY_LEFT;
+let JOY_VERT        = JOY_DOWN |JOY_UP;
+
+//; values for ENAxy:
+let DISABLE         = 0b00;
+let ENABLE          = 0b10                   ; //value for enabling a missile
+
+//; values for REFPx:
+let NOREFLECT       = 0b0000;
+let REFLECT         = 0b1000;
+
+
+
+in ram @ 0x80 {
+
+//;===============================================================================
+//; Z P - V A R I A B L E S
+//;===============================================================================
+
+//    SEG.U   Variables
+//    ORG     $80
+
+var livesPat   @ 0x80 : u8; //         .byte   ;           number of lives, stored as displayed pattern ($a0 = 3, $80 = 2, $00 = 1)
+var random     @ 0x81 : u8; //         .byte   ;           all scenes are generated randomly with this
+var random2    @ 0x82 : u8; //         .byte   ;           used for random object animation
+var joystick   @ 0x83 : u8; //         .byte   ;           stores joystick directions
+var fireButton @ 0x84 : u8; //         .byte   ;           stores fire button state
+var hitLiana   @ 0x85 : u8; //         .byte   ;           Harry collided with liana? (bit 6 = 1 -> yes)
+var cxHarry    @ 0x86 : u8; //         .byte   ;           Harry's collisions (stored but _never_ read!)
+#[compile_if(SCREENSAVER)] var SS_XOR @ 0x87 : u8; //             .byte   ;           change colors in screensaver mode (0/$01..$ff)
+#[compile_if(SCREENSAVER)] var SS_Mask @ 0x88 : u8; //             .byte   ;           darker colors in screensaver mode ($ff/$f7)
+#[compile_if(!SCREENSAVER)] var dummy @ 0x87 : u16; //             .word
+
+var colorLst       @ 0x89 : [u8; 9];//           ds 9    ;           some (mostly constant!?) colors
+var lianaBottom    @ 0x92 : u8; //       .byte   ;           bottom row of liana
+var objectType     @ 0x93 : u8; //      .byte   ;           type of the objects on the ground (hazards & treasures)
+var sceneType      @ 0x94 : u8; //       .byte   ;           type of the scene (0..7
+var HMFineLst      @ 0x95 : [u8; 3];//       ds 3    ;           fine positioning value for: Harry, ground-object, underground-object
+var HMCoarseLst    @ 0x98 : [u8; 3];//      ds 3    ;           coars positioning value for: Harry, ground-object, underground-object
+var posLeftBranch  @ 0x9b  : u8; //     .byte   ;           values for positioning left branch graphics
+var posRightBranch @ 0x9c : u8; //    .byte   ;           values for positioning right branch graphics
+var ladderFlag     @ 0x9d : u8; //      .byte   ;           0 = no ladder, $ff = with ladder
+var noGameScroll   @ 0x9e : u8; //      .byte   ;           0 = game is running
+var PF2QuickSand   @ 0x9f : u8; //      .byte   ;           PF2 data for top quicksand row
+var PF2Lst         @ 0xa0 : [u8; 7];//        ds 7    ;           copied pit pattern data
+var objColLst      @ 0xa7 : [u8; 7];//         ds 7    ;           copied object colors
+var objPatLst      @ 0xae : [u8; 7];//         ds 7    ;           copied object patterns
+var PatPtr         @ 0xb5 : [u8;20];
+var harryPatPtra    @ 0xb5 : u8;//       .word   ; = $b5     pointer to Pitfall Harry patterns
+var harryPatPtr    @ 0xb5 : u16;//       .word   ; = $b5     pointer to Pitfall Harry patterns
+var harryPatPtr8   @ 0xb5 : [u8;2];//       .word   ; = $b5     pointer to Pitfall Harry patterns
+var objPatPtr8a     @ 0xb7 : u8;//       .word   ;           pointer to object (hazards, treasure) patterns
+var objPatPtr      @ 0xb7 : u16;//       .word   ;           pointer to object (hazards, treasure) patterns
+var objPatPtr8     @ 0xb7 : [u8;2];//       .word   ;           pointer to object (hazards, treasure) patterns
+
+var harryColPtra    @ 0xb9 : u8;//       .word   ;           pointer to Pitfall Harry colors
+var harryColPtr    @ 0xb9 : u16;//       .word   ;           pointer to Pitfall Harry colors
+var harryColPtr8   @ 0xb9 : [u8;2];//       .word   ;           pointer to Pitfall Harry colors
+
+var objColPtr8a  @ 0xbb : u8;//       .word   ;           pointer to object (hazards, treasure) colors
+var objColPtr      @ 0xbb : u16;//       .word   ;           pointer to object (hazards, treasure) colors
+var objColPtr8     @ 0xbb : [u8;2];//       .word   ;           pointer to object (hazards, treasure) colors
+
+var wallPatPtr     @ 0xbd : u16;//       .word   ;           pointer to wall patterns
+var wallPatPtr8    @ 0xbd : [u8;2];//       .word   ;           pointer to wall patterns
+
+var wallColPtr     @ 0xbf  : u16;//       .word   ;           pointer to wall colors
+var wallColPtr8    @ 0xbf : [u8;2];//       .word   ;           pointer to wall colors
+
+var undrPatPtr     @ 0xc1 : u16;//       .word   ;           pointer to underground object (wall, scorpion) patterns
+var undrPatPtr8    @ 0xc1 : [u8;2];//       .word   ;           pointer to underground object (wall, scorpion) patterns
+
+var undrColPtr     @ 0xc3 : u16;//      .word   ;           pointer to underground object (wall, scorpion) colors
+var undrColPtr8    @ 0xc3 : [u8;2];//      .word   ;           pointer to underground object (wall, scorpion) colors
+
+var digitPtr       @ 0xc5 : [u8; 12];////      ds.w 6  ;           pointers for score display
+var digitPtra      @ 0xc5 : u16;////      ds.w 6  ;           pointers for score display
+var digitPtr2      @ 0xc7 : [u8; 12];////      ds.w 6  ;           pointers for score display
+var digitPtr2a     @ 0xc7 : u16;////      ds.w 6  ;           pointers for score display
+var digitPtr4      @ 0xc9 : [u8; 12];////      ds.w 6  ;           pointers for score display
+var digitPtr4a     @ 0xc9 : u16;////      ds.w 6  ;           pointers for score display
+var digitPtr6      @ 0xcb : [u8; 12];////      ds.w 6  ;           pointers for score display
+var digitPtr6a     @ 0xcb : u16;////      ds.w 6  ;           pointers for score display
+var digitPtr8      @ 0xcd : [u8; 12];////      ds.w 6  ;           pointers for score display
+var digitPtr8a     @ 0xcd : u16;////      ds.w 6  ;           pointers for score display
+var digitPtr10     @ 0xcf : [u8; 12];////      ds.w 6  ;           pointers for score display
+var digitPtr10a    @ 0xcf : u16;////      ds.w 6  ;           pointers for score display
+
+  //  IF SCREENSAVER
+#[compile_if(SCREENSAVER)] var SS_Delay @ 0xd1 : u8; //            .byte   ; = $d1
+let SS_Delaya = 0xd1; //
+#[compile_if(SCREENSAVER)] var SS_DelayLo @ 0xd2 : u8; //        .byte
+var frameCnt       @ 0xd3 : u8;//           .byte   ;           frame counter (increased every frame)
+var nusize1        @ 0xd4 : u8;//           .byte   ;           number of ground-objects
+var scoreHi        @ 0xd5 : u8;//           .byte   ;           3 BCD score bytes
+var scoreHi8       @ 0xd5 : [u8;20];//           .byte   ;           3 BCD score bytes
+var scoreMed       @ 0xd6 : u8;//           .byte
+var scoreLo        @ 0xd7 : u8;//           .byte
+var timerHi        @ 0xd8 : u8;//           .byte   ;           2 BCD timer bytes
+var timerMed       @ 0xd9 : u8;//           .byte
+var timerLo        @ 0xda : u8;//          .byte   ;           decease timer every 60th frame
+var hmblSum        @ 0xdb : u8;//          .byte   ;           used to generate liana line
+var hmblAdd        @ 0xdc : u8;//          .byte   ;           depends on the liana angle
+var hmblDir        @ 0xdd : u8;//          .byte   ;           move liana +/-1
+var lianaPosHi     @ 0xde : u8;//         .byte   ;           high x-position of liana bottom
+var lianaPosLo     @ 0xdf : u8;//        .byte   ;           low x-position of liana bottom
+var soundIdx       @ 0xe0 : u8;//        .byte   ;           index of sound-table (0 = no sound)
+//var PosPtr         @ 0xe1 : [u8;3]; 
+var xPosHarry8     @ 0xe1 : [u8;3]; 
+var xPosHarry      @ 0xe1 : u8;//        .byte   ;           x-position of Pitfall Harry
+var xPosObject     @ 0xe2 : u8;//        .byte   ;           x-position of hazards & treasures
+var xPosScorpion   @ 0xe3 : u8;//      .byte   ;           x-position of the scorpion (and the wall)
+var patIdHarry     @ 0xe4 : u8;//      .byte   ;           id of the animation for Harry
+var reflectHarry   @ 0xe5 : u8;//      .byte   ;           reflect Harry graphics
+var reflectScorpion @ 0xe6  : u8;//   .byte   ;           reflect scorpion graphics
+var jumpIndex      @ 0xe7 : u8;//      .byte   ;           index of jump-table (0..32)
+var oldJoystick    @ 0xe8 : u8;//      .byte   ;           saved old joystick direction
+var yPosHarry      @ 0xe9 : u8;//      .byte   ;           y-position of Pitfall Harry
+var atLiana        @ 0xea : u8;//      .byte   ;           Harry at liana? (0 = no, -1 = yes)
+var treePat        @ 0xeb : u8;//      .byte   ;           id of the leaves pattern (0..3)
+var climbPos      @ 0xec : u8;//      .byte   ;           position of Harry at ladder (0/11..22)
+var treasureBits  @ 0xed : [u8; 4];//      ds 4    ;           remember which treasures haven't been found
+var treasureCnt   @ 0xf1 : u8;//      .byte   ; = $f1     number of remaining treasures-1
+var patOfsHarry   @ 0xf2 : u8;//      .byte   ;           pattern offset (5 while kneeing, 0 else)
+var soundDelay    @ 0xf3 : u8;//      .byte   ;           play a new note every 4th frame
+var xPosQuickSand @ 0xf4: u8;//      .byte   ;           border of quicksand
+var jumpMode @ 0xf5 : u8;//         .byte   ; = $f5     similar to jumpIndex (JTZ: superfluous?)
+var temp @ 0xf6 : [u8;3];
+var temp1 @ 0xf6  : u8;//         .byte
+var temp2 @ 0xf7      : u8;//         .byte
+var temp3 @ 0xf8      : u8;//         .byte
+
+var oram @ 0x00 : [u8; 0x7f];
+}

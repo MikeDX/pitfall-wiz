@@ -1,2 +1,3 @@
-bank rom @ 0x1000 : [constdata; 4096];
+bank rom @ 0xF000 : [constdata; 4096];
 bank ram @ 0x80 : [vardata; 128];
+bank tia @ 0xE000 : [vardata; 128];

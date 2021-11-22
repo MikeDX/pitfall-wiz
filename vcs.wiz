@@ -1,4 +1,4 @@
-
+import "banks";
 namespace vcs {
     namespace sync {
         var vsync @ 0x00 : u8;
@@ -28,13 +28,14 @@ namespace vcs {
     }
 
     namespace io {
-        var pots @ 0x3C : [u8; 4];
-        var pot1 @ 0x38 : u8;
-        var pot2 @ 0x39 : u8;
-        var pot3 @ 0x3A : u8;
-        var pot4 @ 0x3B : u8;
+        var pots @ 0xC : [u8; 4];
+        var pot1 @ 0x8 : u8;
+        var pot2 @ 0x9 : u8;
+        var pot3 @ 0xA : u8;
+        var pot4 @ 0xB : u8;
 
         var triggers @ 0x3C : [u8; 2];
+        var trigger1m30 @ 0x0C : u8;
         var trigger1 @ 0x3C : u8;
         var trigger2 @ 0x3D : u8;
         let TRIGGER_JOY_FIRE = 0x80;
@@ -214,15 +215,24 @@ namespace vcs {
 
         var missile1_vs_players @ 0x30 : u8;
         var missile2_vs_players @ 0x31 : u8;
+        var player1_vs_playfieldm30 @ 0x02 : u8;
         var player1_vs_playfield @ 0x32 : u8;
         var player2_vs_playfield @ 0x33 : u8;
         var missile1_vs_playfield @ 0x34 : u8;
         var missile2_vs_playfield @ 0x35 : u8;
         var ball_vs_field @ 0x36 : u8;
         var pvp_mvm @ 0x37 : u8;
+        var pvp_mvm_m30 @ 0x07 : u8;
     }
 }
-
+namespace tiamirror {
+  in tia @ 0xE000 {
+    var HMBL @ 0xE024 : u8;
+    var RESP1 @ 0xE011 : u8;
+    var ENABL @ 0xE01F : u8;
+  }
+}
+let VSYNC = vcs.sync.vsync;
 let WSYNC = vcs.sync.wsync;
 let NUSIZ0 = vcs.control.player1;
 let NUSIZ1 = vcs.control.player2;
@@ -237,7 +247,7 @@ let REFP0 = vcs.reflect.player1;
 let REFP1 = vcs.reflect.player2;
 let CXCLR = vcs.collision.clear;
 let VDELP0 = vcs.vdelay.player1;
-let VDELP1 = vcs.vdelay.player1;
+let VDELP1 = vcs.vdelay.player2;
 let HMCLR = vcs.hmove.clear;
 let COLUP = vcs.color.players;
 let COLUP0 = vcs.color.player1;
@@ -252,7 +262,11 @@ let PF2 = vcs.pattern.playfield3;
 
 let ENABL = vcs.pattern.ball;
 let CXP0FB = vcs.collision.player1_vs_playfield;
+let CXP0FBm30 = vcs.collision.player1_vs_playfieldm30;
+
 let CXPPMM = vcs.collision.pvp_mvm;
+let CXPPMMm30 = vcs.collision.pvp_mvm_m30;
+
 let CTRLPF = vcs.control.playfield;
 let RESBL = vcs.reset.ball;
 
@@ -273,6 +287,7 @@ let VBLANK = vcs.sync.vblank;
 let SWCHB = vcs.io.port_b;
 let SWCHA = vcs.io.port_a;
 let INPT4 = vcs.io.trigger1;
+let INPT4m30 = vcs.io.trigger1m30;
 
 namespace riot {
   
