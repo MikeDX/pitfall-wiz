@@ -1,0 +1,1057 @@
+
+import "banks";
+import "vars";
+in rom @ 0xFb00 {
+ 
+  const Harry0  @ 0xFb6e - 110 : [u8 ; 22] = [
+  /*{w:8,h:22,bpp:1,brev:1}*/   
+/*0x00, 0x00, 0x00, 0x00, 0x00, 0x33, 0x72, 
+0xDA, 0x1E, 0x1C, 0x18, 0x58, 0x58,
+0x7C, 0x3E, 0x1A, 0x18, 0x10, 0x18, 0x18, 
+0x18, 0x00    */
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00110011, // ; |  XX  XX|
+    0b01110010, // ; | XXX  X |
+    0b11011010, // ; |XX XX X |
+    0b00011110, // ; |   XXXX |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b01011000, // ; | X XX   |
+    0b01011000, // ; | X XX   |
+    0b01111100, // ; | XXXXX  |
+    0b00111110, // ; |  XXXXX |
+    0b00011010, // ; |   XX X |
+    0b00011000, // ; |   XX   |
+    0b00010000, // ; |   X    |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00000000, // ; |        |
+    
+  ];
+  const Harry1 @ 0xFb6e - 88: [u8; 22] = [
+   /*{w:8,h:22,bpp:1,brev:1}*/
+    /*
+    0x00, 0x80, 0x80, 0xC3, 0x62, 0x62, 0x36, 0x3E,
+0x1C, 0x18, 0x18, 0x3C, 0x3E, 0x3A, 0x38, 0x18, 
+0x18, 0x10, 0x18, 0x18, 0x18, 0x00*/
+    0b00000000, // ; |        |
+    0b10000000, // ; |X       |
+    0b10000000, // ; |X       |
+    0b11000011, // ; |XX    XX|
+    0b01100010, // ; | XX   X |
+    0b01100010, // ; | XX   X |
+    0b00110110, // ; |  XX XX |
+    0b00111110, // ; |  XXXXX |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00111100, // ; |  XXXX  |
+    0b00111110, // ; |  XXXXX |
+    0b00111010, // ; |  XXX X |
+    0b00111000, // ; |  XXX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00010000, // ; |   X    |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00000000, // ; |        |
+  ];
+  const Harry2 @ 0xFb6e - 66 : [u8; 22] = [
+    0b00010000, // ; |   X    |
+    0b00100000, // ; |  X     |
+    0b00100010, // ; |  X   X |
+    0b00100100, // ; |  X  X  |
+    0b00110100, // ; |  XX X  |
+    0b00110010, // ; |  XX  X |
+    0b00010110, // ; |   X XX |
+    0b00011110, // ; |   XXXX |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011100, // ; |   XXX  |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00010000, // ; |   X    |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00000000, // ; |        |
+  ];
+  const Harry3 @ 0xFb6e - 44: [u8; 22] = [
+    0b00001100, // ; |    XX  |
+    0b00001000, // ; |    X   |
+    0b00101000, // ; |  X X   |
+    0b00101000, // ; |  X X   |
+    0b00111110, // ; |  XXXXX |
+    0b00001010, // ; |    X X |
+    0b00001110, // ; |    XXX |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011100, // ; |   XXX  |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00010000, // ; |   X    |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00000000, // ; |        |
+  ];
+  const Harry4 @ 0xFb6e - 22: [u8; 22] = [
+    0b00000000, // ; |        |
+    0b00000010, // ; |      X |
+    0b01000011, // ; | X    XX|
+    0b01000100, // ; | X   X  |
+    0b01110100, // ; | XXX X  |
+    0b00010100, // ; |   X X  |
+    0b00011100, // ; |   XXX  |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00111100, // ; |  XXXX  |
+    0b00111110, // ; |  XXXXX |
+    0b00111010, // ; |  XXX X |
+    0b00111000, // ; |  XXX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00010000, // ; |   X    |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00000000, // ; |        |
+  ];
+  const Harry5 @ 0xFb6e : [u8; 22] = [
+    0b00011000, // ; |   XX   |
+    0b00010000, // ; |   X    |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011100, // ; |   XXX  |
+    0b00011110, // ; |   XXXX |
+    0b00011010, // ; |   XX X |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00010000, // ; |   X    |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00000000, // ; |        |
+  ];
+  const Harry6 @ 0xFb6e + 22: [u8; 22] = [
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b01100011, // ; | XX   XX|
+    0b11110010, // ; |XXXX  X |
+    0b11110110, // ; |XXXX XX |
+    0b11011100, // ; |XX XXX  |
+    0b11000000, // ; |XX      |
+    0b11000000, // ; |XX      |
+    0b11000000, // ; |XX      |
+    0b11000000, // ; |XX      |
+    0b11000000, // ; |XX      |
+    0b11110000, // ; |XXXX    |
+    0b11010000, // ; |XX X    |
+    0b10010000, // ; |X  X    |
+    0b11010000, // ; |XX X    |
+    0b11010000, // ; |XX X    |
+    0b11000000, // ; |XX      |
+    0b00000000, // ; |        |
+  ];
+  const Harry7 @ 0xFb6e + 44 : [u8; 22] = [
+    0b00110000, // ; |  XX    |
+    0b00010000, // ; |   X    |
+    0b00010000, // ; |   X    |
+    0b00010000, // ; |   X    |
+    0b00010110, // ; |   X XX |
+    0b00010100, // ; |   X X  |
+    0b00010100, // ; |   X X  |
+    0b00010110, // ; |   X XX |
+    0b00010010, // ; |   X  X |
+    0b00010110, // ; |   X XX |
+    0b00011110, // ; |   XXXX |
+    0b00011100, // ; |   XXX  |
+    0b00011000, // ; |   XX   |
+    0b00111000, // ; |  XXX   |
+    0b00111000, // ; |  XXX   |
+    0b00111100, // ; |  XXXX  |
+    0b00011110, // ; |   XXXX |
+    0b00011010, // ; |   XX X |
+    0b00000010, // ; |      X |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+  ];
+  const Harry8 @ 0xFb6e + 66: [u8; 21] = [
+    0b00001100, // ; |    XX  |
+    0b00001000, // ; |    X   |
+    0b00001000, // ; |    X   |
+    0b00001000, // ; |    X   |
+    0b01101000, // ; | XX X   |
+    0b00101000, // ; |  X X   |
+    0b00101000, // ; |  X X   |
+    0b01101000, // ; | XX X   |
+    0b01001000, // ; | X  X   |
+    0b01101000, // ; | XX X   |
+    0b01111000, // ; | XXXX   |
+    0b00111000, // ; |  XXX   |
+    0b00011000, // ; |   XX   |
+    0b00011100, // ; |   XXX  |
+    0b00011100, // ; |   XXX  |
+    0b00111100, // ; |  XXXX  |
+    0b01111000, // ; | XXXX   |
+    0b01011000, // ; | X XX   |
+    0b01000000, // ; | X      |
+    0b00011000, // ; |   XX   |
+    0b00011000, // ; |   XX   |
+  ];
+
+
+  const BranchTab @ 0xFbc5: [u8; 9] = [
+    0b00011000, // ; |   XX   |
+    0b01111110, // ; | XXXXXX |
+    0b11011011, // ; |XX XX XX|
+    0b10011001, // ; |X  XX  X|
+    0b10011001, // ; |X  XX  X|
+    0b10011001, // ; |X  XX  X|
+    0b10011001, // ; |X  XX  X|
+    0b10011001, // ; |X  XX  X|
+    0b10011001, // ; |X  XX  X|
+
+  ];
+  const PF1LogTab @ 0xFbce : [u8;4] = [
+    0b10000000, // ; |X       |
+    0b00100000, // ; |  X     |
+    0b00001000, // ; |    X   |
+    0b00000100, // ; |     X  |
+  ];
+  const PF2LogTab @ 0xFb6e + 100: [u8;4] = [
+    0b00000001, // ; |       X|
+    0b00000100, // ; |     X  |
+    0b00010000, // ; |   X    |
+    0b00100000, // ; |  X     |
+  ];
+  const BranchPosLTab @ 0xFbd6: [u8;4] = [
+    0x43, 0xc3, 0x34, 0xf4
+  ];
+  const BranchPosRTab @ 0xFbda : [u8;4] = [
+    0xf2, 0x72, 0x00, 0x40
+  ];
+//}
+//in rom @ 0xFbde {
+//  PF2PatTab:
+  const OneHole @ 0xFbde : [u8; 8] = [
+    0b01111111, // ; | XXXXXXX|        one hole
+    0b01111111, // ; | XXXXXXX|
+    0b01111111, // ; | XXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+  ];
+  const ThreeHoles @ 0xFbde + 8 : [u8;8] = [
+    0b01111000, // ; | XXXX   |        three holes
+    0b01111000, // ; | XXXX   |
+    0b01111000, // ; | XXXX   |
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+  ];
+  const Pit @ 0xFbee : [u8;24] = [
+    0b00000000, // ; |        |        pits
+    0b00000001, // ; |       X|
+    0b00000011, // ; |      XX|
+    0b00001111, // ; |    XXXX|
+    0b01111111, // ; | XXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+    0b11111111, // ; |XXXXXXXX|
+  ];
+  const QuickSandSize @ 0xFc06 : [u8;5] = [
+    0, 4, 8, 16, 28
+  ];
+
+  //; Harry's colors while climbing:
+  const ClimbColTab @ 0xFc06 + 5: [u8;22] = [
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    PINK,
+    PINK,
+    PINK,
+    BROWN
+  ];
+
+
+  const RunColTab @ 0xFc21: [u8;20] = [
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    DARK_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    YELLOW_GREEN,
+    PINK,
+    PINK,
+    PINK,
+  //  BROWN
+  ];
+  
+  const SoundTabm1 @ 0xFc35: [u8] = [ // SoundTab-1
+    BROWN
+  ];
+  
+  const SoundTab @ 0xFc36: [u8] = [
+    0x13, 0x13, 0x13, 0x13, 0x13, 0x13, 0x13, 0x09, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+    0x0b, 0x0b, 0x0b, 0x0b, 0x09, 0x0b, 0x09, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x8b, 0x06,
+    0x04, 0x03, 0x02, 0x84,
+    0x13, 0x13, 0x0e, 0x0b, 0x09, 0x09, 0x09, 0x0b, 0x09, 0x09, 0x09, 0x89,
+    0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1a, 0x1a, 0x19, 0x19, 0x19, 0x19, 0x19,
+    0x19, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x14, 0x15, 0x14, 0x15, 0x14, 0x15, 0x14, 0x15, 0x14, 0x15,
+    0x14, 0x95,
+    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x9f
+  ];
+
+  const QuickSandTab @ 0xFc90: [u8;2] = [
+    0b00000000, // ; |        |
+    0b00001111, // ; |    XXXX|
+  ];
+  const QuickSandTab2 @ 0xFc92: [u8;3] = [
+    0b00001111, // ; |    XXXX|
+    0b00000000, // ; |        |
+    0b00001111, //; |    XXXX|                next byte (0) overlaps
+  ];
+  const LadderTab @ 0xFc95 : [u8] = [
+    BLACKPIT|DISABLE, 
+    BLACKPIT|DISABLE, BLACKPIT|ENABLE, BLUEPIT|ENABLE,
+    BLUEPIT |DISABLE, BLACKPIT|DISABLE, BLACKPIT|ENABLE, BLUEPIT|ENABLE,
+    DISABLE, DISABLE, ENABLE, ENABLE  //;some bytes overlap
+  ];
+  const LianaTab @ 0xFca1: [u8;8] = [
+    DISABLE, DISABLE, ENABLE, ENABLE, ENABLE, DISABLE, ENABLE, DISABLE
+  ]; 
+
+}
+
+in rom @ ROMADDR + 0xD00 {
+  const Log0 :  [u8;16] = [
+    0b00000000, //; |        |
+    0b00011000, //; |   XX   |
+    0b00100100, //; |  X  X  |
+    0b01011010, //; | X XX X |
+    0b01011010, //; | X XX X |
+    0b01011010, //; | X XX X |
+    0b01100110, //; | XX  XX |
+    0b01111110, //; | XXXXXX |
+    0b01011110, //; | X XXXX |
+    0b01110110, //; | XXX XX |
+    0b01111110, //; | XXXXXX |
+    0b01011110, //; | X XXXX |
+    0b01110110, //; | XXX XX |
+    0b00111100, //; |  XXXX  |
+    0b00011000, //; |   XX   |
+    0b00000000 //; |        |
+  ];
+  const Log1 : [u8;16] = [
+    0b00000000, //; |        |
+    0b00011000, //; |   XX   |
+    0b00100100, //; |  X  X  |
+    0b01011010, //; | X XX X |
+    0b01011010, //; | X XX X |
+    0b01011010, //; | X XX X |
+    0b01100110, //; | XX  XX |
+    0b01111110, //; | XXXXXX |
+    0b01111010, //; | XXXX X |
+    0b01101110, //; | XX XXX |
+    0b01111110, //; | XXXXXX |
+    0b01111010, //; | XXXX X |
+    0b01101110, //; | XX XXX |
+    0b00111100, //; |  XXXX  |
+    0b00011000, //; |   XX   |
+    0b00000000, //; |        |
+  ];
+
+  const Fire0 : [u8;16] = [ 
+    0b00000000, //; |        |
+    0b11000011, //; |XX    XX|
+    0b11100111, //; |XXX  XXX|
+    0b01111110, //; | XXXXXX |
+    0b00111100, //; |  XXXX  |
+    0b00011000, //; |   XX   |
+    0b00111100, //; |  XXXX  |
+    0b01111100, //; | XXXXX  |
+    0b01111100, //; | XXXXX  |
+    0b01111000, //; | XXXX   |
+    0b00111000, //; |  XXX   |
+    0b00111000, //; |  XXX   |
+    0b00110000, //; |  XX    |
+    0b00110000, //; |  XX    |
+    0b00010000, //; |   X    |
+    0b00010000, //; |   X    |
+  ];
+  const Fire1 : [u8;16] = [ 
+    0b00000000, //; |        |
+    0b11000011, //; |XX    XX|
+    0b11100111, //; |XXX  XXX|
+    0b01111110, //; | XXXXXX |
+    0b00111100, //; |  XXXX  |
+    0b00011000, //; |   XX   |
+    0b00111100, //; |  XXXX  |
+    0b00111110, //; |  XXXXX |
+    0b00111110, //; |  XXXXX |
+    0b00011110, //; |   XXXX |
+    0b00011100, //; |   XXX  |
+    0b00011100, //; |   XXX  |
+    0b00001100, //; |    XX  |
+    0b00001100, //; |    XX  |
+    0b00001000, //; |    X   |
+    0b00001000, //; |    X   |
+  ];
+  const Cobra0 : [u8] = [ 
+    0b00000000, //; |        |
+    0b11111110, //; |XXXXXXX |
+    0b11111001, //; |XXXXX  X|
+    0b11111001, //; |XXXXX  X|
+    0b11111001, //; |XXXXX  X|
+    0b11111001, //; |XXXXX  X|
+    0b01100000, //; | XX     |
+    0b00010000, //; |   X    |
+    0b00001000, //; |    X   |
+    0b00001100, //; |    XX  |
+    0b00001100, //; |    XX  |
+    0b00001000, //; |    X   |
+    0b00111000, //; |  XXX   |
+    0b00110000, //; |  XX    |
+    0b01000000, //; | X      |
+    0b00000000, //; |        |
+  ];
+  const Cobra1 : [u8] = [ 
+    0b00000000, //; |        |
+    0b11111110, //; |XXXXXXX |
+    0b11111001, //; |XXXXX  X|
+    0b11111001, //; |XXXXX  X|
+    0b11111010, //; |XXXXX X |
+    0b11111010, //; |XXXXX X |
+    0b01100000, //; | XX     |
+    0b00010000, //; |   X    |
+    0b00001000, //; |    X   |
+    0b00001100, //; |    XX  |
+    0b00001100, //; |    XX  |
+    0b00001000, //; |    X   |
+    0b00111000, //; |  XXX   |
+    0b00110000, //; |  XX    |
+    0b10000000, //; |X       |
+    0b00000000, //; |        |
+  ];
+  const Croco0 : [u8] = [ 
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b11111111, //; |XXXXXXXX|
+    0b10101011, //; |X X X XX|
+    0b00000011, //; |      XX|
+    0b00000011, //; |      XX|
+    0b00001011, //; |    X XX|
+    0b00101110, //; |  X XXX |
+    0b10111010, //; |X XXX X |
+    0b11100000, //; |XXX     |
+    0b10000000, //; |X       |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+  ];
+  const Croco1 : [u8] = [ 
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b11111111, //; |XXXXXXXX|
+    0b10101011, //; |X X X XX|
+    0b01010101, //; | X X X X|
+    0b11111111, //; |XXXXXXXX|
+    0b00000110, //; |     XX |
+    0b00000100, //; |     X  |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+  ];
+  const MoneyBag : [u8] = [ 
+    0b00000000, //; |        |
+    0b00111110, //; |  XXXXX |
+    0b01110111, //; | XXX XXX|
+    0b01110111, //; | XXX XXX|
+    0b01100011, //; | XX   XX|
+    0b01111011, //; | XXXX XX|
+    0b01100011, //; | XX   XX|
+    0b01101111, //; | XX XXXX|
+    0b01100011, //; | XX   XX|
+    0b00110110, //; |  XX XX |
+    0b00110110, //; |  XX XX |
+    0b00011100, //; |   XXX  |
+    0b00001000, //; |    X   |
+    0b00011100, //; |   XXX  |
+    0b00110110, //; |  XX XX |
+    0b00000000, //; |        |
+  ];
+
+  const Scorpion0 : [u8] = [
+    0b10000101, // |X    X X|
+    0b00110010, // |  XX  X |
+    0b00111101, // |  XXXX X|
+    0b01111000, // | XXXX   |
+    0b11111000, // |XXXXX   |
+    0b11000110, // |XX   XX |
+    0b10000010, // |X     X |
+    0b10010000, // |X  X    |
+    0b10001000, // |X   X   |
+    0b11011000, // |XX XX   |
+    0b01110000, // | XXX    |
+    0b00000000, // |        |
+    0b00000000, // |        |
+    0b00000000, // |        |
+    0b00000000, // |        |
+    0b00000000, // |        |
+  ];
+  const Scorpion1 : [u8] = [
+    0b01001001, // ; | X  X  X|
+    0b00110011, // ; |  XX  XX|
+    0b00111100, // ; |  XXXX  |
+    0b01111000, // ; | XXXX   |
+    0b11111010, // ; |XXXXX X |
+    0b11000100, // ; |XX   X  |
+    0b10010010, // ; |X  X  X |
+    0b10001000, // ; |X   X   |
+    0b11011000, // ; |XX XX   |
+    0b01110000, // ; | XXX    |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+  ];
+  const Wall : [u8] = [
+    0b11111110, //; |XXXXXXX |
+    0b10111010, //; |X XXX X |
+    0b10111010, //; |X XXX X |
+    0b10111010, //; |X XXX X |
+    0b11111110, //; |XXXXXXX |
+    0b11101110, //; |XXX XXX |
+    0b11101110, //; |XXX XXX |
+    0b11101110, //; |XXX XXX |
+    0b11111110, //; |XXXXXXX |
+    0b10111010, //; |X XXX X |
+    0b10111010, //; |X XXX X |
+    0b10111010, //; |X XXX X |
+    0b11111110, //; |XXXXXXX |
+    0b11101110, //; |XXX XXX |
+    0b11101110, //; |XXX XXX |
+    0b11101110, //; |XXX XXX |
+  ];
+
+
+  const Bar0 : [u8] = [
+    0b00000000, //; |        |
+    0b11111000, //; |XXXXX   |
+    0b11111100, //; |XXXXXX  |
+    0b11111110, //; |XXXXXXX |
+    0b11111110, //; |XXXXXXX |
+    0b01111110, //; | XXXXXX |
+    0b00111110, //; |  XXXXX |
+    0b00000000, //; |        |
+    0b00010000, //; |   X    |
+    0b00000000, //; |        |
+    0b01010100, //; | X X X  |
+    0b00000000, //; |        |
+    0b10010010, //; |X  X  X |
+    0b00000000, //; |        |
+    0b00010000, //; |   X    |
+    0b00000000, //; |        |
+  ];
+  const Bar1 : [u8] = [
+    0b00000000, //; |        |
+    0b11111000, //; |XXXXX   |
+    0b11111100, //; |XXXXXX  |
+    0b11111110, //; |XXXXXXX |
+    0b11111110, //; |XXXXXXX |
+    0b01111110, //; | XXXXXX |
+    0b00111110, //; |  XXXXX |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00101000, //; |  X X   |
+    0b00000000, //; |        |
+    0b01010100, //; | X X X  |
+    0b00000000, //; |        |
+    0b00010000, //; |   X    |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+  ];
+
+  //  const Ring: [u8] =[];//
+
+  const Ring : [u8] = [
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00111000, //; |  XXX   |
+    0b01101100, //; | XX XX  |
+    0b01000100, //; | X   X  |
+    0b01000100, //; | X   X  |
+    0b01000100, //; | X   X  |
+    0b01101100, //; | XX XX  |
+    0b00111000, //; |  XXX   |
+    0b00010000, //; |   X    |
+    0b00111000, //; |  XXX   |
+    0b01111100, //; | XXXXX  |
+    0b00111000, //; |  XXX   |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+  ];
+
+  //  const Nothing : [u8] =[];//
+  const Nothing : [u8] = [
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+  ];
+}
+
+in rom @ 0xFe00 {
+  const LogColor : [u8] = [
+    BROWN, BROWN, BROWN, BROWN, BROWN, BROWN, BROWN, BROWN,
+    BROWN, BROWN, BROWN, BROWN, BROWN, BROWN, BROWN, BROWN
+  ];
+  const FireColor @ 0xFe10 : [u8] = [
+    BROWN - 2, BROWN - 2, BROWN - 2, BROWN - 2, BROWN - 2, ORANGE, ORANGE, ORANGE,
+    0x2e, 0x2e, 0x2e, 0x2e, 0x2e, 0x2e, 0x2e, 0x2e
+  ];
+  const CobraColor @ 0xFe20  : [u8] = [
+    BLACK, BLACK, GREY - 2, BLACK, GREY - 2, BLACK, BLACK, BLACK,
+    BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, DARK_RED, DARK_RED
+  ];
+  const CrocoColor @ 0xFe30 : [u8] = [
+    DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2,
+    DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2, DARK_GREEN - 2
+  ];
+  const MoneyBagColor @ 0xFe40 : [u8] = [
+    GREY - 2, GREY - 2, GREY - 2, GREY - 2, GREY - 2, GREY - 2, GREY - 2, GREY - 2,
+    GREY - 2, GREY - 2, GREY - 2, GREY - 2, BROWN, GREY - 2, GREY - 2, GREY - 2
+  ];
+  const ScorpionColor @ 0xFe50 : [u8] = [
+    WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
+    WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE
+  ];
+
+  const WallColor @ 0xFe60 : [u8] = [
+    GREY, DARK_RED, DARK_RED, DARK_RED, GREY, DARK_RED, DARK_RED, DARK_RED,
+    GREY, DARK_RED, DARK_RED, DARK_RED, GREY, DARK_RED
+  ];
+  const RingColor @ 0xFe6e : [u8] = [
+    DARK_RED, DARK_RED
+  ];
+
+  const GoldBarColor @ 0xFe70 : [u8] = [
+    YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW,
+    WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
+    WHITE
+  ];
+
+  const SilverBarColor @ 0xFe81: [u8] = [
+    GREY, GREY, GREY, GREY, GREY, GREY, GREY, WHITE,
+    WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE
+  ];
+
+  const InitTab8 @ 0xFe91: [u8] = [
+    <:(&Harry5[0]),              // ; harryPatPtr
+    >:(&Harry5[0]),              // ; harryPatPtr
+    <:(&Log0[0]),                //  ; objPatPtr
+    >:(&Log0[0]),                //  ; objPatPtr
+  ];
+
+}
+
+in rom @ ROMADDR + 0xF00 {
+  const Zero  : [u8] = [
+    0b00111100, //; |  XXXX  |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b00111100, //; |  XXXX  |
+  ];
+  const One  : [u8] = [
+    0b00111100, //; |  XXXX  |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00111000, //; |  XXX   |
+    0b00011000, //; |   XX   |
+  ];
+  const Two  : [u8] = [
+    0b01111110, //; | XXXXXX |
+    0b01100000, //; | XX     |
+    0b01100000, //; | XX     |
+    0b00111100, //; |  XXXX  |
+    0b00000110, //; |     XX |
+    0b00000110, //; |     XX |
+    0b01000110, //; | X   XX |
+    0b00111100, //; |  XXXX  |
+  ];
+  const Three   : [u8] = [
+    0b00111100, //; |  XXXX  |
+    0b01000110, //; | X   XX |
+    0b00000110, //; |     XX |
+    0b00001100, //; |    XX  |
+    0b00001100, //; |    XX  |
+    0b00000110, //; |     XX |
+    0b01000110, //; | X   XX |
+    0b00111100, //; |  XXXX  |
+  ]; 
+  const Four  : [u8] = [
+    0b00001100, //; |    XX  |
+    0b00001100, //; |    XX  |
+    0b00001100, //; |    XX  |
+    0b01111110, //; | XXXXXX |
+    0b01001100, //; | X  XX  |
+    0b00101100, //; |  X XX  |
+    0b00011100, //; |   XXX  |
+    0b00001100, //; |    XX  |
+  ]; 
+  const Five  : [u8] = [
+    0b01111100, //; | XXXXX  |
+    0b01000110, //; | X   XX |
+    0b00000110, //; |     XX |
+    0b00000110, //; |     XX |
+    0b01111100, //; | XXXXX  |
+    0b01100000, //; | XX     |
+    0b01100000, //; | XX     |
+    0b01111110, //; | XXXXXX |
+  ]; 
+  const Six  : [u8] = [
+    0b00111100, //; |  XXXX  |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b01111100, //; | XXXXX  |
+    0b01100000, //; | XX     |
+    0b01100010, //; | XX   X |
+    0b00111100, //; |  XXXX  |
+  ]; 
+  const Seven   : [u8] = [
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00001100, //; |    XX  |
+    0b00000110, //; |     XX |
+    0b01000010, //; | X    X |
+    0b01111110, //; | XXXXXX |
+  ]; 
+  const Eight  : [u8] = [
+    0b00111100, //; |  XXXX  |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b00111100, //; |  XXXX  |
+    0b00111100, //; |  XXXX  |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b00111100, //; |  XXXX  |
+  ]; 
+  const Nine  : [u8] = [
+    0b00111100, //; |  XXXX  |
+    0b01000110, //; | X   XX |
+    0b00000110, //; |     XX |
+    0b00111110, //; |  XXXXX |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b01100110, //; | XX  XX |
+    0b00111100, //; |  XXXX  |
+  ]; 
+
+  const DoublePoint  : [u8] = [
+    0b00000000, //; |        |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00011000, //; |   XX   |
+    0b00011000, //; |   XX   |
+    0b00000000, //; |        |
+  ];
+  const Space  : [u8] = [
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |
+    0b00000000, // ; |        |    
+  ];
+  const CopyRight0  : [u8] = [
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b11110111, //; |XXXX XXX|
+    0b10010101, //; |X  X X X|
+    0b10000111, //; |X    XXX|
+    0b10000000, //; |X       |
+    0b10010000, //; |X  X    |
+    0b11110000, //; |XXXX    |
+    0b10101101, //; |X X XX X|
+    0b10101001, //; |X X X  X|
+    0b11101001, //; |XXX X  X|
+    0b10101001, //; |X X X  X|
+    0b11101101, //; |XXX XX X|
+    0b01000001, //; | X     X|
+    0b00001111, //; |    XXXX|
+    0b00000000, //; |        |
+  ];
+  const CopyRight1  : [u8] = [
+    0b01000111, //; | X   XXX|
+    0b01000001, //; | X     X|
+    0b01110111, //; | XXX XXX|
+    0b01010101, //; | X X X X|
+    0b01110101, //; | XXX X X|
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b01010000, //; | X X    |
+    0b01011000, //; | X XX   |
+    0b01011100, //; | X XXX  |
+    0b01010110, //; | X X XX |
+    0b01010011, //; | X X  XX|
+    0b00010001, //; |   X   X|
+    0b11110000, //; |XXXX    |
+    0b00000000, //; |        |
+  ];
+  const CopyRight2  : [u8] = [
+    0b00000011, //; |      XX|
+    0b00000000, //; |        |
+    0b01001011, //; | X  X XX|
+    0b01001010, //; | X  X X |
+    0b01101011, //; | XX X XX|
+    0b00000000, //; |        |
+    0b00001000, //; |    X   |
+    0b00000000, //; |        |
+    0b10111010, //; |X XXX X |
+    0b10001010, //; |X   X X |
+    0b10111010, //; |X XXX X |
+    0b10100010, //; |X X   X |
+    0b00111010, //; |  XXX X |
+    0b10000000, //; |X       |
+    0b11111110, //; |XXXXXXX |
+    0b00000000, //; |        |
+  ];
+  const CopyRight3  : [u8] = [
+    0b10000000, //; |X       |
+    0b10000000, //; |X       |
+    0b10101010, //; |X X X X |
+    0b10101010, //; |X X X X |
+    0b10111010, //; |X XXX X |
+    0b00100010, //; |  X   X |
+    0b00100111, //; |  X  XXX|
+    0b00000010, //; |      X |
+    0b11101001, //; |XXX X  X|
+    0b10101011, //; |X X X XX|
+    0b10101111, //; |X X XXXX|
+    0b10101101, //; |X X XX X|
+    0b11101001, //; |XXX X  X|
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+  ];
+  const CopyRight4  : [u8] = [
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00010001, //; |   X   X|
+    0b00010001, //; |   X   X|
+    0b00010111, //; |   X XXX|
+    0b00010101, //; |   X X X|
+    0b00010111, //; |   X XXX|
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+  ];
+  const CopyRight5  : [u8] = [
+    0b00000000, //; |        |
+    0b00000000, //; |        |
+    0b01110111, //; | XXX XXX|
+    0b01010100, //; | X X X  |
+    0b01110111, //; | XXX XXX|
+    0b01010001, //; | X X   X|
+    0b01110111, //; | XXX XXX|
+    0b00000000, //; |        |
+  ];
+  const ColorTab  : [u8] = [
+    0x0C,                  //       ; score and copyright color
+    0x0C,                  //       ; unused
+    DARK_GREEN,            //       ; leaves color
+    GREEN,                 //       ; jungle color
+    BLACK,                 //       ; hole, background and tar pit color
+    (BROWN - 2),           //       ; branches and log color
+    (BROWN + 2),           //       ; underground color
+    (YELLOW - 6),          //       ; ground color
+    BLUE                  //       ; swamp color
+  ];
+
+
+  const Color1PtrTab  : [u8] = [
+    <:(&LogColor[0]),
+    <:(&LogColor[0]),
+    <:(&LogColor[0]),
+    <:(&LogColor[0]),
+    <:(&LogColor[0]),
+    <:(&LogColor[0]),
+    <:(&FireColor[0]),
+    <:(&CobraColor[0]),
+    <:(&MoneyBagColor[0]),
+    <:(&SilverBarColor[0]),
+    <:(&GoldBarColor[1]),
+    <:(&RingColor[0])
+  ];
+
+  const NuSize1Tab : [u8] = [
+    ONE_COPY,                 // ; one rolling log
+    TWO_COPIES,               // ; two rolling logs
+    TWO_WIDE_COPIES,          // ; two wide rolling logs
+    THREE_MED_COPIES,         // ; three rolling logs
+    ONE_COPY,                 // ; one stationary log
+    THREE_MED_COPIES,         // ; three stationary logs
+    ONE_COPY,                 // ; fire
+    ONE_COPY,                 // ; cobra
+    ONE_COPY,                 // ; money bag
+    ONE_COPY,                 // ; silver bar
+    ONE_COPY,                 // ; gold bar
+    ONE_COPY,                 // ; ring
+  ];
+
+  //; used to animate some of the hazards:
+  const AnimateTab  : [u8] = [
+    0,                       //  ; logs
+    0,
+    0,
+    0,
+    0,
+    0,
+    OBJECT_H,                //  ; fire
+    OBJECT_H,                //  ; cobra
+    0,                       //  ; money bag
+    OBJECT_H,                //  ; silver bar
+    OBJECT_H,                //  ; gold bar
+    0,                       //  ; ring
+    0,                       //  ; nothing (treasure collected)
+  ];
+  const GroundTypeTab : [u8] = [
+    <:((&OneHole as u16) - (&OneHole as u16)) , //
+    <:((&ThreeHoles as u16) - (&OneHole as u16)) , //
+    <:((&Pit as u16) - (&OneHole as u16)) , //
+    <:((&Pit as u16) - (&OneHole as u16)) , //
+    <:((&Pit as u16) - (&OneHole as u16)) , //
+    0x80,                       // ; black quicksand with treasure
+    0x80,                       // ; black quicksand
+    0x80,                       // ; blue quicksand
+  ];
+  const CrocoTab @ ROMADDR + 0xFEE : [u8] = [
+    0,0,0,0, //    0 x CROCO_SCENE ,
+    1, // byte 1
+    0,0,0, //7 - 0 x 7-CROCO_SCENE
+  ];
+  const filler @ ROMADDR + 0xFF6: [u8;4];
+}

@@ -1,0 +1,13 @@
+
+import "banks";
+import "vars";
+in rom @ ROMADDR + 0xFEE {
+  inline func sscols() {
+//    return;
+    #[compile_if(SCREENSAVER)] 
+    a = a ^ SS_XOR;           // eor    SS_XOR           ; 3
+    #[compile_if(SCREENSAVER)] 
+    a = a & SS_Mask;          // and    SS_Mask          ; 3
+    #[compile_if(!SCREENSAVER)]     nop(4);
+  }
+}

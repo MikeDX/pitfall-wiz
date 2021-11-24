@@ -22,7 +22,7 @@ let NTSC            = true; //                     ; compile for NTSC
 
 //; initial value for the random number generator:
 let RAND_SEED       = 0xc4                   ; //defines the start scene of the game (c4)
-
+let ROMADDR = 0xF000;
 //; color constants:
 #[compile_if(NTSC)] let BROWN           = 0x12;
 #[compile_if(NTSC)] let YELLOW          = 0x1e;
