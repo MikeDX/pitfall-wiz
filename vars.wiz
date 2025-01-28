@@ -12,7 +12,7 @@ let TRAINER         = false; //                     ; enable training mode
 let NTSC            = true; //                     ; compile for NTSC
 #[compile_if(NTSC)] let FRAMERATE       = 60; 
 #[compile_if(NTSC)] let STARTTIME       = 0x20;
-#[compile_if(!NTSC)] let FRAMERATE       = 60; 
+#[compile_if(!NTSC)] let FRAMERATE       = 50; 
 #[compile_if(!NTSC)] let STARTTIME       = 0x20; //                   ; $24   ..adjust the PAL timer
 
 

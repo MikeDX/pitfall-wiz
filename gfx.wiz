@@ -243,13 +243,13 @@ in rom @ 0xFb00 {
     0b10011001, // ; |X  XX  X|
 
   ];
-  const PF1LogTab @ 0xFbce : [u8;4] = [
+  const PF1TrunkTab @ 0xFbce : [u8;4] = [
     0b10000000, // ; |X       |
     0b00100000, // ; |  X     |
     0b00001000, // ; |    X   |
     0b00000100, // ; |     X  |
   ];
-  const PF2LogTab @ 0xFb6e + 100: [u8;4] = [
+  const PF2TrunkTab @ 0xFb6e + 100: [u8;4] = [
     0b00000001, // ; |       X|
     0b00000100, // ; |     X  |
     0b00010000, // ; |   X    |
@@ -284,7 +284,7 @@ in rom @ 0xFb00 {
     0b11111111, // ; |XXXXXXXX|
     0b11111111, // ; |XXXXXXXX|
   ];
-  const Pit @ 0xFbee : [u8;24] = [
+  const Pit @ 0xFbee : [u8;8] = [
     0b00000000, // ; |        |        pits
     0b00000001, // ; |       X|
     0b00000011, // ; |      XX|
@@ -293,7 +293,8 @@ in rom @ 0xFb00 {
     0b11111111, // ; |XXXXXXXX|
     0b11111111, // ; |XXXXXXXX|
     0b11111111, // ; |XXXXXXXX|
-
+  ];
+  const Solid @ 0xFbee + 8 : [u8;16] = [
     0b11111111, // ; |XXXXXXXX|
     0b11111111, // ; |XXXXXXXX|
     0b11111111, // ; |XXXXXXXX|
@@ -1046,7 +1047,7 @@ in rom @ ROMADDR + 0xF00 {
     <:((&Pit as u16) - (&OneHole as u16)) , //
     0x80,                       // ; black quicksand with treasure
     0x80,                       // ; black quicksand
-    0x80,                       // ; blue quicksand
+    0x80,                       // ; blue quicksand (pool)
   ];
   const CrocoTab @ ROMADDR + 0xFEE : [u8] = [
     0,0,0,0, //    0 x CROCO_SCENE ,

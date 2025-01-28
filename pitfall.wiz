@@ -13,9 +13,11 @@ in rom @ ROMADDR {
   a = 0x00;                 // lda #$00;
 
   //  loopClear:
+  // clear from x to 0xff
+  // if called here from the reset check, only clear ram from SS_DelayA onwards
   do {
     oram[x] = a;            // sta    $00,x            ; 4
-    s = x;                  // txs
+    //s = x;                  // txs
     x++;                    // inx
   } while (!zero);          // bne loopClear
 
@@ -23,7 +25,7 @@ in rom @ ROMADDR {
 
   MainLoop:
   x = 8;                    // ldx    #8
-
+ // goto MainLoop;
   loopColors:
   do {
     a = ColorTab[x];        // lda ColorTab, x
@@ -46,47 +48,82 @@ in rom @ ROMADDR {
 ; JTZ: two color pointers aren't necessary!
 */
   y = <:&ScorpionColor ;  //       ldy    #<ScorpionColor  ; 2
+  			// ScorpionColor = 0xFe50, so Y = 0x50
   x = <:&Scorpion0; //     ldx    #<Scorpion0      ; 2
+  			// Scorpion0 = 0xfd90, so X = 0x90
   a = xPosScorpion; //     lda    xPosScorpion     ; 3
+  			// a = value at 0xe3
   a = a >>> 1;       //     lsr                     ; 2                 animate scorpion
+  			// shift value to the right
+  
+  // scorpion walking right?
   if carry {
     //  goto scorpion0 if !carry; //     bcc    .scorpion0       ; 2³
-    x = <:(&Scorpion1 as *u8); //     ldx    #<Scorpion1      ; 2
+    x = <:&Scorpion1; //     ldx    #<Scorpion1      ; 2
+    			// Scorpion1 = 0xfda0, so x = a0
   }
   //  scorpion0:
 //  a = <:&Nothing; //   lda    #<Nothing        ; 2
-  wallPatPtr8[0] = a = <:&Nothing;
+  // Scorpion is essentially the wall, so dont draw the upper 16 of the scorpion
+  // graphic.
+  // Changing this makes the scorpion carry a wall on his back
+  // Interestingly if you hit the scorpion you collide
+  // as if its a wall and bounce back and forth, and get stuck
+  wallPatPtr8[0] = a = <:&Nothing; 
+  			// Nothing = 0xFDF0
+  			// so a = 0xF0
+  			
   a = ladderFlag; //     lda    ladderFlag       ; 3                 ladder in scene
 
+  // is there a ladder?
   if !zero {
     //  goto noLadder if zero; //     beq    .noLadder        ; 2³                 no, skip
     y = <:&WallColor; //     ldy    #<WallColor      ; 2                  yes,..
-//
+
     x = <:&Wall;      //     ldx    #<Wall           ; 2
     wallPatPtr8[0] = x ;//= <:&Wall; //    stx    wallPatPtr       ; 3                 ..load pointers at ladder data
     wallColPtr8[0] = y ;//= <:&WallColor;  //   sty    wallColPtr       ; 3
   }
-  noLadder:
+//  noLadder:
   undrPatPtr8[0] = x; //     stx    undrPatPtr       ; 3                 set scorpion or ladder pointers
   undrColPtr8[0] = y; //     sty    undrColPtr       ; 3
   // ; calculate pits, quicksand etc.:
+  // sceneType is one of b111 (0 - 7)
   x = sceneType;    //     ldx    sceneType        ; 3
   a = LadderTab[x]; //     lda    LadderTab,x      ; 4                 blue swamp?
+  // if the LadderTable at [x] bit 7 is set, black pit.
   if negative {
     //  goto noPit if !negative; //     bpl    .noPit           ; 2³                 yes, skip
 //    a = colorLst[4]; //     lda    colorLst+4       ; 3                  no, black tar pit
     colorLst[8] = a = colorLst[4]; //     sta    colorLst+8       ; 3
   }
-  noPit:
+//  noPit:
   y = 0; // ldy    #0               ; 2                 disable quicksand
+  // a is the lookup from GroundTypeTab[sceneType]
+  // This is a lookup of:
+  // 0 - onehole
+  // 1 - threeholes
+  // 2 - pit
+  // 3 - pit
+  // 4 - pit
+  // bit 7 set (0x80) for the following 3
+  // which are quicksand types (static pool / tar)
+  // 5 - 0x80
+  // 6 - 0x80
+  // 7 - 0x80
   a = GroundTypeTab[x]; //     lda    GroundTypeTab,x  ; 4
+  
+  // if bit 7 set (type 5 6 or 7)
   if negative {
     //  goto noQuickSand if !negative; //     bpl    .noQuickSand     ; 2³
     a = yPosHarry; //     lda    yPosHarry        ; 3
+    // if a > 55 (0x37) then goto doQuickSand 
     cmp(a,55); //     cmp    #55              ; 2                 Harry in underground?
 
     goto doQuickSand if carry; //     bcs    .doQuickSand     ; 2³                 yes, animate quicksand
 
+    // if a > 33 (0x21) then goto stopQuickSand
+    // fell into quicksand?
     cmp(a, JUNGLE_GROUND + 1); //     cmp    #JUNGLE_GROUND+1 ; 2                 stop quicksand animation when..
     goto stopQuickSand if carry; //     bcs    .stopQuickSand   ; 2³                ..Harry is falling into the pit
     doQuickSand:
@@ -106,8 +143,11 @@ in rom @ ROMADDR {
     a = a & QuickSandTab2[x]; //     and    QuickSandTab+2,x ; 4                 calculate size of the quicksand pit
     a = a ^ QuickSandTab[x]; //     eor    QuickSandTab,x   ; 4
     push(a); //     pha                     ; 3
+
+    // y = quicksand table offset
     y = a; //     tay                     ; 2
-    y = a = QuickSandSize[y]; //     lda    QuickSandSize,y  ; 4
+    //y = QuickSandSize[y])
+    y = (a = QuickSandSize[y]); //     lda    QuickSandSize,y  ; 4
     //y = a; //     tay                     ; 2
     a = pop(); //     pla                     ; 4
     carry = false; //     clc                     ; 2
@@ -115,21 +155,32 @@ in rom @ ROMADDR {
     }
   //noQuickSand:
   carry = false; //     clc                     ; 2
+  // y is zero here (set above) or will be the QuickSandSize value at posision
+  // from QuickSandTabN from the frame counter >> 2 (>>4)
   xPosQuickSand = y; //     sty    xPosQuickSand    ; 3
+  // from a+6 to a+0
   a = a +#6; //    adc    #6               ; 2
   y = a; //     tay                     ; 2
+  // 6 values
   x = 6; //     ldx    #6               ; 2
   //a = ladderFlag; //     lda    ladderFlag       ; 3                 no swamp etc. when ladder
   a = ladderFlag ^ 0xff; //     eor    #$ff             ; 2
   temp1 = a; //     sta    temp1            ; 3
-  loopPF2Lst:
-  a = OneHole[y]; //    lda    PF2PatTab,y      ; 4
-  PF2Lst[x] = a; //     sta    PF2Lst,x         ; 4
-  a = a | temp1; //     ora    temp1            ; 3
-  PF2QuickSand = a; //    sta    PF2QuickSand     ; 3
-  y--; //     dey                     ; 2
-  x--; //     dex                     ; 2
-  goto loopPF2Lst if !negative; //     bpl    .loopPF2Lst      ; 2³ 
+  do {
+    // OneHole[0] is the graphic offset from the pit/hole table
+    // y is the offset for the current graphic
+    a = OneHole[y]; //    lda    PF2PatTab,y      ; 4
+
+    // copy the data into the PF2Lst pattern slot
+    PF2Lst[x] = a; //     sta    PF2Lst,x         ; 4
+    // ultimately set PF2QuickSand to a when loop ends
+    // this code could go outside of the do loop
+    a = a | temp1; //     ora    temp1            ; 3
+    PF2QuickSand = a; //    sta    PF2QuickSand     ; 3
+    y--; //     dey                     ; 2
+    x--; //     dex                     ; 2
+  } while !negative; //     bpl    .loopPF2Lst      ; 2³ 
+  //goto loopPF2Lst if !negative; 
   stopQuickSand:
   //; calculate x-positioning values:
   x = 2; //     ldx    #2               ; 2
@@ -260,7 +311,7 @@ loopPos:
   HMP0 = a = posLeftBranch; //vcs.hmove.player1 = a; //      sta    HMP0             ; 3
 //  a = posRightBranch; //     lda    posRightBranch   ; 3
   HMP1 = a = posRightBranch; //vcs.hmove.player2 = a; //     sta    HMP1             ; 3
-  
+
   do {                 //waitPos1:
     y--;               //     dey                     ; 2
   } while !negative;   //     bpl    .waitPos1        ; 2³
@@ -330,14 +381,15 @@ loopPos:
   HMBL = y;         //   sty    HMBL             ; 3
 //  a = 0b001;        //   lda    #%001            ; 2
   CTRLPF = a = 0b001;       //   sta    CTRLPF           ; 3                 disable playfield priority
-  a = PF1LogTab[x]; //   lda    PF1LogTab,x      ; 4
-  y = PF2LogTab[x]; //   ldy    PF2LogTab,x      ; 4
+  a = PF1TrunkTab[x]; //   lda    PF1LogTab,x      ; 4
+  y = PF2TrunkTab[x]; //   ldy    PF2LogTab,x      ; 4
   x = nusize1;      //   ldx    nusize1          ; 3
   WSYNC = a;        //   sta    WSYNC            ; 3
   //;---------------------------------------
   HMOVE = a;        //   sta    HMOVE            ; 3
   PF1 = a;          //   sta    PF1              ; 3                 draw outer logs
   //a = colorLst[5];  //   lda    colorLst+5       ; 3                 always BROWN-2
+  // tree trunks brown
   COLUPF = a = colorLst[5];       //   sta    COLUPF           ; 3
 //  a = 0;            //   lda    #0               ; 2
   GRP0 = a = 0;         //   sta    GRP0             ; 3
@@ -368,25 +420,27 @@ loopPos:
     if carry { //    goto noMove3 if !carry; //    bcc    .noMove3         ; 2³
       a = hmblDir; //    lda    hmblDir          ; 3
     } //    noMove3:
-    
+
     WSYNC = a; //    sta    WSYNC            ; 3
     //  ;---------------------------------------
     HMOVE = a; //
     y = 0; //    ldy    #0               ; 2                 do the coarse positions
     temp[x] = y;//     sty    temp1,x          ; 4
     y = HMCoarseLst[x]; //  ldy    HMCoarseLst,x    ; 4                 position at the very left?
-//    if zero {
-    goto waitPos if !zero; //    bne    .waitPos         ; 2³                 no, skip
-    y = 0x60; //    ldy    #$60             ; 2                  yes, use special code
-    temp[x] = y;//    sty    temp1,x          ; 4
-    RESP[x] = a; //    sta    RESP0,x          ; 4
-    HMBL = a; //    sta    HMBL             ; 3
-//    }
-//    if zero {
-    goto endPos0 if !zero; //    bne    .endPos0         ; 3
-    waitPos:
-    y--; //    dey                     ; 2                 "normal" position
-    goto waitPos if !zero; //     bne    .waitPos         ; 2³
+    //    if zero {
+    if zero {
+      //    goto waitPos if !zero; //    bne    .waitPos         ; 2³                 no, skip
+      y = 0x60; //    ldy    #$60             ; 2                  yes, use special code
+      temp[x] = y;//    sty    temp1,x          ; 4
+      RESP[x] = a; //    sta    RESP0,x          ; 4
+      HMBL = a; //    sta    HMBL             ; 3
+      //    }
+      //    if zero {
+      goto endPos0 if !zero; //    bne    .endPos0         ; 3
+    } //waitPos:
+    do {
+      y--; //    dey                     ; 2                 "normal" position
+    } while !zero; //goto waitPos if !zero; //     bne    .waitPos         ; 2³
     <:tiamirror.HMBL = a; //    sta.w  HMBL             ; 4
     RESP[x] = a; //    sta    RESP0,x          ; 4
   //  } 
@@ -397,7 +451,9 @@ loopPos:
     x--; //    dex                     ; 2
   } while !negative; //goto loopLianaPos if !negative; //    bpl    .loopLianaPos    ; 2³
 
+  // this seems unnecessary?
   DrawLiana(); //    jsr    DrawLiana        ;31/33
+  
   a = HMFineLst[0]; //    lda    HMFineLst        ; 3
   HMP0 = a; //    sta    HMP0             ; 3                 do the fine positions
   a = HMFineLst[1]; //    lda    HMFineLst+1      ; 3
@@ -425,23 +481,25 @@ loopPos:
   VDELP0 = x; //    stx    VDELP0           ; 3                 disable vertical delay for Harry
   //; Kernel 3 (21 lines): draw liana and Harry:
   loopLianaHarry:
-  carry = false; //    clc                     ; 2
-//  a = hmblSum; //    lda    hmblSum          ; 3
-  hmblSum = a = hmblSum +#hmblAdd; //    adc    hmblAdd          ; 3
-//    hmblSum = a; //    sta    hmblSum          ; 3
-  a = 0; //    lda    #$00             ; 2
-  HMCLR = a; //    sta    HMCLR            ; 3
-  if carry { //  goto noMove4 if !carry; //    bcc    .noMove4         ; 2³
-    a = hmblDir; //    lda    hmblDir          ; 3
-  } //noMove4:
-  HMBL = a; //    sta    HMBL             ; 3
-  DrawHarry(); //    jsr    DrawHarry        ;27/37
-  WSYNC = a; //    sta    WSYNC            ; 3
-  //;---------------------------------------
-  HMOVE = a; //      sta    HMOVE            ; 3
-  COLUP0 = a; //    sta    COLUP0           ; 3
-  x--; //    dex                     ; 2
-  goto loopLianaHarry if !negative; //    bpl    .loopLianaHarry  ; 2³
+  do {
+    carry = false; //    clc                     ; 2
+    //  a = hmblSum; //    lda    hmblSum          ; 3
+    hmblSum = a = hmblSum +#hmblAdd; //    adc    hmblAdd          ; 3
+      //    hmblSum = a; //    sta    hmblSum          ; 3
+      a = 0; //    lda    #$00             ; 2
+    HMCLR = a; //    sta    HMCLR            ; 3
+    if carry { //  goto noMove4 if !carry; //    bcc    .noMove4         ; 2³
+      a = hmblDir; //    lda    hmblDir          ; 3
+    } //noMove4:
+    HMBL = a; //    sta    HMBL             ; 3
+    DrawHarry(); //    jsr    DrawHarry        ;27/37
+    WSYNC = a; //    sta    WSYNC            ; 3
+    //;---------------------------------------
+    HMOVE = a; //      sta    HMOVE            ; 3
+    COLUP0 = a; //    sta    COLUP0           ; 3
+    x--; //    dex                     ; 2
+  } while !negative; 
+//  goto loopLianaHarry if !negative; //    bpl    .loopLianaHarry  ; 2³
   VDELP0 = x; //    stx    VDELP0           ; 3                 enable vertical delay for Harry
   x++; //    inx                     ; 2
   GRP1 = x; //    stx    GRP1             ; 3
@@ -786,9 +844,9 @@ loopPos:
   Kernel2:
   //SUBROUTINE
   skipHarry1:
-  a = 0; // lda    #0               ; 2
+  GRP0 = (a = 0); // lda    #0               ; 2
 
-  GRP0 = a; //    sta    GRP0             ; 3
+//  GRP0 = a; //    sta    GRP0             ; 3
   goto conrHarry if zero; //    beq    .conrHarry       ; 3
 
   ContKernel:
@@ -1033,9 +1091,11 @@ loopPos:
   y = COPYRIGHT_H / 2; //    ldy    #COPYRIGHT_H/2   ; 2
   a = noGameScroll; //    lda    noGameScroll     ; 3
   x = soundIdx; //    ldx    soundIdx         ; 3
-  goto noSound0 if zero; //    beq    .noSound0        ; 2³
+  if !zero {
+//  goto noSound0 if zero; //    beq    .noSound0        ; 2³
   a = 0; //    lda    #0               ; 2
-  noSound0:
+  }
+//  noSound0:
   a = a >>> 1; //    lsr                     ; 2
   a = a >>> 1; //    lsr                     ; 2
   a = a >>> 1; //    lsr                     ; 2
@@ -1221,12 +1281,21 @@ loopPos:
   carry = true; //    sec                     ; 2
   SS_Delay = SS_Delay >>>># 1; //    ror    SS_Delay         ; 5
   skipSS_Delay:
+
+  // Check for b/w switch
+  // y = 0xff, meaning colour mode
   y = 0xff; //    ldy    #$ff             ; 2
+  // read inputs(b)
   a = SWCHB; //    lda    SWCHB            ; 4
+  // get the BW_switch bit
   a = a & BW_MASK; //    and    #BW_MASK         ; 2
-  goto colorMode if !zero; //    bne    .colorMode       ; 2³
+
+  goto doColours if !zero; //    bne    .colorMode       ; 2³
+  // if the BW_MASK switch is set, set y to 0x0f (bw mode)
   y = 0x0f; //    ldy    #$0f             ; 2
-  colorMode:
+
+  // setup the colours
+  doColours:
   a = y; //    tya                     ; 2
   y = 0; //    ldy    #$00             ; 2                 disable changing colors
   bit(SS_Delay); //     bit    SS_Delay         ; 3
@@ -1253,44 +1322,55 @@ loopPos:
 
   //  ; read joystick:
   a = SWCHA;  //    lda    SWCHA            ; 4
-  a = a >>> 1; //    lsr                     ; 2
-  a = a >>> 1; //    lsr                     ; 2
-  a = a >>> 1; //    lsr                     ; 2
-  a = a >>> 1; //    lsr                     ; 2
+  // Shift 4 places right so we only have the player 1 direction bits
+  a = a >>> 4; //    lsr                     ; 2
+//  a = a >>> 1; //    lsr                     ; 2
+//  a = a >>> 1; //    lsr                     ; 2
+//  a = a >>> 1; //    lsr                     ; 2
   joystick = a; //  sta    joystick         ; 3
+  
+  // compare p1 with b1111 (no press)
   cmp(a,NO_MOVE); //    cmp    #NO_MOVE         ; 2
-  goto noMove if zero; //    beq    .noMove          ; 2³
-  x = 0; //    ldx    #0               ; 2
-  //  IF SCREENSAVER
-  SS_Delay = x; //    stx    SS_Delay         ; 3                 reset screensaver
-  //  ELSE
-  //    FILL_NOP 2
-  //  ENDIF
-  a = timerHi; //    lda    timerHi          ; 3
-  cmp(a,STARTTIME); //    cmp    #STARTTIME       ; 2                 timer at 20:00?
-  goto noMove if !zero; //    bne    .noMove          ; 2³                 no, skip
-  noGameScroll = x;//    stx    noGameScroll     ; 3                  yes, game is running
+  // if jostick moved
+  if !zero {
+    //  goto noMove if zero; //    beq    .noMove          ; 2³
+    x = 0; //    ldx    #0               ; 2
+    //  IF SCREENSAVER
+    SS_Delay = x; //    stx    SS_Delay         ; 3                 reset screensaver
+    //  ELSE
+    //    FILL_NOP 2
+    //  ENDIF
+    a = timerHi; //    lda    timerHi          ; 3
+    cmp(a,STARTTIME); //    cmp    #STARTTIME       ; 2                 timer at 20:00?
+    if zero {
+      //  goto noMove if !zero; //    bne    .noMove          ; 2³                 no, skip
+      noGameScroll = x;//    stx    noGameScroll     ; 3                  yes, game is running
+    } 
+  }
   noMove:
 
   //; read RESET switch:
   a = SWCHB;//    lda    SWCHB            ; 4
   a = a >>> 1;     //     lsr                     ; 2 RESET pressed?
-  goto noReset if carry; //    bcs    .noReset         ; 2³                 no, skip
-  //  IF SCREENSAVER
-  x = SS_Delaya;  //    ldx    #SS_Delay        ; 2                  yes, load init-values offset..
-  //  ELSE
-  //    ldx    #frameCnt        ; 2                  yes, load init-values offset..
-  //  ENDIF
-  goto Reset; //    jmp    Reset            ; 3                 ..and jump to Reset
-
+  if (!carry) {
+   // goto noReset if carry; //    bcs    .noReset         ; 2³                 no, skip
+    //  IF SCREENSAVER
+    x = SS_Delaya;  //    ldx    #SS_Delay        ; 2                  yes, load init-values offset..
+    //  ELSE
+    //    ldx    #frameCnt        ; 2                  yes, load init-values offset..
+    //  ENDIF
+    goto Reset; //    jmp    Reset            ; 3                 ..and jump to Reset
+  }
   noReset:
   a = noGameScroll; //    lda    noGameScroll     ; 3                 game running?
-  goto processHarry if zero;//    beq    .processHarry    ; 2³                 yes, process Harry
-  goto ProcessObjects;  //    jmp    ProcessObjects   ; 3                  no, skip Harry, goto objects
-  processHarry:
+  if !zero {
+//  goto processHarry if zero;//    beq    .processHarry    ; 2³                 yes, process Harry
+    goto ProcessObjects;  //    jmp    ProcessObjects   ; 3                  no, skip Harry, goto objects
+  } // processHarry:
   //  ; *** process Harry: ***
   //.processHarry:
   frameCnt ++;//  inc    frameCnt         ; 5
+  // this is the random bits for fire flicker, etc
   a = random2; //    lda    random2          ; 3
   a = a << 1; //    asl                     ; 2
   a = a ^ random2; //    eor    random2          ; 3
@@ -1303,7 +1383,7 @@ loopPos:
   a = yPosHarry; //  lda    yPosHarry        ; 3                  yes, calculate..
   carry = true; //  sec                     ; 2                 ..new y-position of Harry
   a = a -#JumpTabm1[x]; //  sbc    JumpTab-1,x      ; 4
-    yPosHarry = a; //  sta    yPosHarry        ; 3
+  yPosHarry = a; //  sta    yPosHarry        ; 3
   jumpIndex++; //    inc    jumpIndex        ; 5
   a = jumpIndex; //     lda    jumpIndex        ; 3
   cmp(a,JUMP_LEN+1); //    cmp    #JUMP_LEN+1      ; 2
@@ -1316,15 +1396,17 @@ loopPos:
   cmp(x,JUNGLE_GROUND); //    cpx    #JUNGLE_GROUND   ; 2                 Harry at jungle ground?
   goto stopJump if zero; //    beq    .stopJump        ; 2³+1               yes, stop any jump
   y = ladderFlag; //    ldy    ladderFlag       ; 3                 ladder in scene?
-  goto skipFalling if zero; //    beq    .skipFalling     ; 2³+1               no, skip falling
-  cmp(x,JUNGLE_GROUND + 2); //    cpx    #JUNGLE_GROUND+2 ; 2
-  goto skipFalling if !zero; //    bne    .skipFalling     ; 2³+1
-  a = SOUND_FALLING; //    lda    #SOUND_FALLING   ; 2                 Harry is falling into a hole
-  soundIdx = a; //    sta    soundIdx         ; 3                 start falling-sound
-  a = 0; //    lda    #$00             ; 2
-  DecScoreHi(); //    jsr    DecScoreHi       ; 6                 subtract 100 points from score
-
-  skipFalling:
+  if !zero {
+    //  goto skipFalling if zero; //    beq    .skipFalling     ; 2³+1               no, skip falling
+    cmp(x,JUNGLE_GROUND + 2); //    cpx    #JUNGLE_GROUND+2 ; 2
+    if zero {
+      //  goto skipFalling if !zero; //    bne    .skipFalling     ; 2³+1
+      a = SOUND_FALLING; //    lda    #SOUND_FALLING   ; 2                 Harry is falling into a hole
+      soundIdx = a; //    sta    soundIdx         ; 3                 start falling-sound
+      a = 0; //    lda    #$00             ; 2
+      DecScoreHi(); //    jsr    DecScoreHi       ; 6                 subtract 100 points from score
+    }
+  } // skipFalling:
   cmp(x,UNDER_GROUND); //    cpx    #UNDER_GROUND    ; 2                 is Harry at underground bottom?
   goto stopJump if zero; //    beq    .stopJump        ; 2³                 yes, stop any jump
   cmp(x,54); //    cpx    #54              ; 2                 has Harry reached the falling limit?
@@ -1623,47 +1705,50 @@ loopPos:
 
   //; check Harry climbing ladder:
   a = climbPos; //    lda    climbPos         ; 3                 Harry at ladder?
-  goto endClimbLadder if zero; //  beq    .endClimbLadder  ; 2³                 no, skip
-  a = 0; //  lda    #0               ; 2
-  jumpIndex = a; //  sta    jumpIndex        ; 3
-  a = frameCnt; //  lda    frameCnt         ; 3
-  a = a & 0x07; //  and    #$07             ; 2                 climb every 8th frame
-  goto skipAnimClimb if !zero; //  bne    .skipAnimClimb   ; 2³
-  a = joystick; //  lda    joystick         ; 3
-  a = a >>> 1;  //  lsr                     ; 2                 joystick up?
-  goto notClimbUp if carry; //    bcs    .notClimbUp      ; 2³                 no, skip
-  climbPos--; //    dec    climbPos         ; 5                  yes, climb up
-  notClimbUp:
-  a = a >>> 1; //    lsr                     ; 2                 joystick down?
-  goto notClimbDown if carry; //    bcs    .notClimbDown    ; 2³                 no, skip
-  climbPos++; //    inc    climbPos         ; 5                  yes, climb down
-  notClimbDown:
-  a = climbPos; //    lda    climbPos         ; 3
-  cmp(a,LADDER_TOP); //    cmp    #LADDER_TOP      ; 2                 top reached?
-  goto skipLadderTop if carry; //    bcs    .skipLadderTop   ; 2³                 no, skip
-  a = NO_MOVE; //    lda    #NO_MOVE         ; 2
-  oldJoystick = a; //    sta    oldJoystick      ; 3
-  a = LADDER_TOP; //  lda    #LADDER_TOP      ; 2
-  skipLadderTop:
-  cmp(a,LADDER_BOTTOM); //    cmp    #LADDER_BOTTOM   ; 2                 bottom reached?
-  goto skipLadderBottom if !carry; //  bcc    .skipLadderBottom; 2³                 no, skip
-  a = 0; //  lda    #0               ; 2                 remove Harry from ladder
-  x = ID_STANDING; //  ldx    #ID_STANDING     ; 2
-  patIdHarry = x; //  stx    patIdHarry       ; 3
-  x = SCREENWIDTH / 2 + 6; //    ldx    #SCREENWIDTH/2+6 ; 2
-  yPosHarry = x; //    stx    yPosHarry        ; 3
-  skipLadderBottom:
-  climbPos = a; //    sta    climbPos         ; 3
-  skipAnimClimb:
-  a = climbPos; //    lda    climbPos         ; 3                 Harry at ladder?
-  goto endClimbLadder if zero; //  beq    .endClimbLadder  ; 2³                 no, skip
-  a = a << 1; //  asl                     ; 2                  yes, calculate y-position of Harry
-  carry = true; //  sec                     ; 2
-  a = a <<<<# 1; //  rol                     ; 2
-  a = a +#1; //  adc    #1               ; 2
-    yPosHarry = a; //    sta    yPosHarry        ; 3
-  endClimbLadder:
-
+  if !zero {
+    //  goto endClimbLadder if zero; //  beq    .endClimbLadder  ; 2³                 no, skip
+    a = 0; //  lda    #0               ; 2
+    jumpIndex = a; //  sta    jumpIndex        ; 3
+    a = frameCnt; //  lda    frameCnt         ; 3
+    a = a & 0x07; //  and    #$07             ; 2                 climb every 8th frame
+    goto skipAnimClimb if !zero; //  bne    .skipAnimClimb   ; 2³
+    a = joystick; //  lda    joystick         ; 3
+    a = a >>> 1;  //  lsr                     ; 2                 joystick up?
+    goto notClimbUp if carry; //    bcs    .notClimbUp      ; 2³                 no, skip
+    climbPos--; //    dec    climbPos         ; 5                  yes, climb up
+    notClimbUp:
+    a = a >>> 1; //    lsr                     ; 2                 joystick down?
+    goto notClimbDown if carry; //    bcs    .notClimbDown    ; 2³                 no, skip
+    climbPos++; //    inc    climbPos         ; 5                  yes, climb down
+    notClimbDown:
+    a = climbPos; //    lda    climbPos         ; 3
+    cmp(a,LADDER_TOP); //    cmp    #LADDER_TOP      ; 2                 top reached?
+    if (!carry) {
+      //goto skipLadderTop if carry; //    bcs    .skipLadderTop   ; 2³                 no, skip
+      a = NO_MOVE; //    lda    #NO_MOVE         ; 2
+      oldJoystick = a; //    sta    oldJoystick      ; 3
+      a = LADDER_TOP; //  lda    #LADDER_TOP      ; 2
+    } //skipLadderTop:
+    cmp(a,LADDER_BOTTOM); //    cmp    #LADDER_BOTTOM   ; 2                 bottom reached?
+    if carry {
+      //  goto skipLadderBottom if !carry; //  bcc    .skipLadderBottom; 2³                 no, skip
+      a = 0; //  lda    #0               ; 2                 remove Harry from ladder
+      x = ID_STANDING; //  ldx    #ID_STANDING     ; 2
+      patIdHarry = x; //  stx    patIdHarry       ; 3
+      x = SCREENWIDTH / 2 + 6; //    ldx    #SCREENWIDTH/2+6 ; 2
+      yPosHarry = x; //    stx    yPosHarry        ; 3
+    } //skipLadderBottom:
+    climbPos = a; //    sta    climbPos         ; 3
+    skipAnimClimb:
+    a = climbPos; //    lda    climbPos         ; 3                 Harry at ladder?
+    if !zero { //goto endClimbLadder if zero; //  beq    .endClimbLadder  ; 2³                 no, skip
+      a = a << 1; //  asl                     ; 2                  yes, calculate y-position of Harry
+      carry = true; //  sec                     ; 2
+      a = a <<<<# 1; //  rol                     ; 2
+      a = a +#1; //  adc    #1               ; 2
+        yPosHarry = a; //    sta    yPosHarry        ; 3
+    } //endClimbLadder:
+  }
   //; animate running Harry:
   a = atLiana; //    lda    atLiana          ; 3                 Harry at liana?
   goto endHarryId if !zero; //    bne    .endHarryId      ; 2³+1               yes, skip running
@@ -1861,74 +1946,85 @@ loopPos:
   //  cmp(y,CROCO_SCENE);
   //  goto noCroco if !zero; //    beq    .noCroco         ; 2³
   a = CrocoTab[y]; //  lda    CrocoTab,y       ; 4
-  goto noCroco if zero; //    beq    .noCroco         ; 2³
-  a = <:(&Croco0); //    lda    #<Croco0         ; 2
-  bit(frameCnt); //    bit    frameCnt         ; 3                 open croco jaws?
-  goto skipClosed if !negative; //  bpl    .skipClosed      ; 2³                 yes, skip
-  a = <:(&Croco1); //  lda    #<Croco1         ; 2       
+  if !zero {
+    //  goto noCroco if zero; //    beq    .noCroco         ; 2³
+    a = <:(&Croco0); //    lda    #<Croco0         ; 2
+    bit(frameCnt); //    bit    frameCnt         ; 3                 open croco jaws?
+    //open jaws on exactly half the frames
 
-  skipClosed:
-  objPatPtr8a = a; //    sta    objPatPtr        ; 3
-  a = <:(&CrocoColor); //    lda    #<CrocoColor     ; 2
-  objColPtr8a = a; //    sta    objColPtr        ; 3
-  a = objectType; //    lda    objectType       ; 3
-  ENABL = a; //    sta    ENABL            ; 3
-  a = THREE_COPIES; //    lda    #THREE_COPIES    ; 2
-  nusize1 = a; //    sta    nusize1          ; 3
-  noCroco:
+    if negative {
+      //    goto skipClosed if !negative; //  bpl    .skipClosed      ; 2³                 yes, skip
+      a = <:(&Croco1); //  lda    #<Croco1         ; 2       
+    }
+    //    skipClosed:
+    objPatPtr8a = a; //    sta    objPatPtr        ; 3
+    a = <:(&CrocoColor); //    lda    #<CrocoColor     ; 2
+    objColPtr8a = a; //    sta    objColPtr        ; 3
+    a = objectType; //    lda    objectType       ; 3
+    ENABL = a; //    sta    ENABL            ; 3
+    a = THREE_COPIES; //    lda    #THREE_COPIES    ; 2
+    nusize1 = a; //    sta    nusize1          ; 3
+  }
   a = noGameScroll; //    lda    noGameScroll     ; 3                 game running?
-  goto skipLogs if !zero; //    bne    .skipLogs        ; 2³                 no, skip
+  if zero {
+    //  goto skipLogs if !zero; //    bne    .skipLogs        ; 2³                 no, skip
 
-  //  cmp(y,CROCO_SCENE);
-  //  goto skipLogs if !zero; //    bne    .skipLogs        ; 2³                 no, skip
-
-  a = CrocoTab[y]; //  lda    CrocoTab,y       ; 4                 crocos in scene?
-  goto skipLogs if !zero; //    bne    .skipLogs        ; 2³                 no, skip
-  cmp(y,TREASURE_SCENE); //    cpy    #TREASURE_SCENE  ; 2                 treasure in scene?
-  goto skipLogs if zero; //    beq    .skipLogs        ; 2³                 yes, skip
-
-
-  //; animate, bounce and move rolling logs:
-  a = xPosObject; //    lda    xPosObject       ; 3
-  a = a << 3; //  asl                     ; 2
-  //  a = a << 1; //  asl                     ; 2
-  //  a = a << 1; ///  asl                     ; 2
-  a = a & 0x30; //  and    #$30             ; 2                 rolling logs bounce for..
-  cmp(a,0x30); //  cmp    #$30             ; 2                 ..2 pixel every 8th x-position
-  a = a & 0x10; //  and    #$10             ; 2
-  a = a +#objPatPtr8a; //  adc    objPatPtr        ; 3
-    objPatPtr8a = a; //  sta    objPatPtr        ; 3
-  a = frameCnt ;//  lda    frameCnt         ; 3
-  a = a >>> 1;  //  lsr                     ; 2                 move logs every 2nd frame
-  goto skipLogs if carry; //    bcs    .skipLogs        ; 2³
-  a = objectType; //  lda    objectType       ; 3
-  cmp(a,ID_STATIONARY); //    cmp    #ID_STATIONARY   ; 2                 rolling logs scene?
-  goto skipLogs if carry; //    bcs    .skipLogs        ; 2³                 no, skip move
-  x = xPosObject; //    ldx    xPosObject       ; 3
-  goto skipResetLogs if !zero; //    bne    .skipResetLogs   ; 2³
-  x = SCREENWIDTH; //    ldx    #SCREENWIDTH     ; 2
-  skipResetLogs:
-  x--; //    dex                     ; 2
-  xPosObject = x; //    stx    xPosObject       ; 3
-  skipLogs:
-  //; set score pointers, replace leading zeros with space:
+    a = CrocoTab[y]; //  lda    CrocoTab,y       ; 4                 crocos in scene?
+    if zero {
+      //  goto skipLogs if !zero; //    bne    .skipLogs        ; 2³                 no, skip
+      cmp(y,TREASURE_SCENE); //    cpy    #TREASURE_SCENE  ; 2                 treasure in scene?
+      if !zero {
+        //    goto skipLogs if zero; //    beq    .skipLogs        ; 2³                 yes, skip
+        //; animate, bounce and move rolling logs:
+        a = xPosObject; //    lda    xPosObject       ; 3
+        a = a << 3; //  asl                     ; 2
+        //  a = a << 1; //  asl                     ; 2
+        //  a = a << 1; ///  asl                     ; 2
+        a = a & 0x30; //  and    #$30             ; 2                 rolling logs bounce for..
+        cmp(a,0x30); //  cmp    #$30             ; 2                 ..2 pixel every 8th x-position
+        a = a & 0x10; //  and    #$10             ; 2
+        a = a +#objPatPtr8a; //  adc    objPatPtr        ; 3
+          objPatPtr8a = a; //  sta    objPatPtr        ; 3
+        a = frameCnt ;//  lda    frameCnt         ; 3
+        a = a >>> 1;  //  lsr                     ; 2                 move logs every 2nd frame
+        if !carry {
+          //  goto skipLogs if carry; //    bcs    .skipLogs        ; 2³
+          a = objectType; //  lda    objectType       ; 3
+          cmp(a,ID_STATIONARY); //    cmp    #ID_STATIONARY   ; 2                 rolling logs scene?
+        }
+        if !carry {
+          //  goto skipLogs if carry; //    bcs    .skipLogs        ; 2³                 no, skip move
+          x = xPosObject; //    ldx    xPosObject       ; 3
+          if zero {
+            //  goto skipResetLogs if !zero; //    bne    .skipResetLogs   ; 2³
+            x = SCREENWIDTH; //    ldx    #SCREENWIDTH     ; 2
+          }
+          //    skipResetLogs:
+          x--; //    dex                     ; 2
+          xPosObject = x; //    stx    xPosObject       ; 3
+        }
+      }
+    }
+  }
+//  skipLogs:
+  //; set score pointers,
   setDigitPtrs(); //     jsr    SetDigitPtrs     ; 6
   x++; //    inx                     ; 2                 x = 0
 
-
-  loopSpace:
-  a = digitPtr[x]; //    lda    digitPtr,x       ; 4
-  goto exitSpace if !zero; //    bne    .exitSpace       ; 2³
-  a = <:(&Space); //    lda    #<Space          ; 2
-  digitPtr[x] = a; //    sta    digitPtr,x       ; 4
-  x++; //  inx                     ; 2
-  x++; //    inx                     ; 2
-  //cmp(x,9); //    cpx    #9               ; 2
-  goto loopSpace if x < 9; //!carry; //    bcc    .loopSpace       ; 2³
+  //  replace leading zeros with space:
+  do {
+    loopSpace:
+    a = digitPtr[x]; //    lda    digitPtr,x       ; 4
+    goto exitSpace if !zero; //    bne    .exitSpace       ; 2³
+    a = <:(&Space); //    lda    #<Space          ; 2
+    digitPtr[x] = a; //    sta    digitPtr,x       ; 4
+    x++; //  inx                     ; 2
+    x++; //    inx                     ; 2
+    //cmp(x,9); //    cpx    #9               ; 2
+  } while x < 9;
+  //  goto loopSpace if x < 9; //!carry; //    bcc    .loopSpace       ; 2³
   exitSpace:
   goto MainLoop;   //jmp    MainLoop         ; 3
-
-
 
   //} // rom decl end
 
@@ -1936,17 +2032,20 @@ loopPos:
   #[fallthrough] func  InitGame()  {      // InitGame SUBROUTINE
     x = 0x01;              //     ldx    #1               ; 2
     random2 = x;           //     stx    random2          ; 3 
-    loopInitSound:
-    a = 0x04;              //     lda    #$04             ; 2                 init both sound channels
-    AUDV[x] = a;           //     sta    AUDV0,x          ; 4
-    a = 0x10;              //     lda    #$10             ; 2
-    AUDF[x] = a;           //     sta    AUDF0,x          ; 4
-    x--;                   //     dex                     ; 2
-    goto loopInitSound if !negative; //     bpl    .loopInitSound   ; 2³
-
+    do {
+      //    loopInitSound:
+      a = 0x04;              //     lda    #$04             ; 2                 init both sound channels
+      AUDV[x] = a;           //     sta    AUDV0,x          ; 4
+      a = 0x10;              //     lda    #$10             ; 2
+      AUDF[x] = a;           //     sta    AUDF0,x          ; 4
+      x--;                   //     dex                     ; 2
+    } while !negative;
+    //    goto loopInitSound if !negative; //     bpl    .loopInitSound   ; 2³
+    // a is now 0x10
     noGameScroll = x;      //     stx    noGameScroll     ; 3                 game is stopped
     xPosHarry = a;         //     sta    xPosHarry        ; 3
     a = a << 1;            //     asl                     ; 2
+    // a is now 0x20
     yPosHarry = a;         //     sta    yPosHarry        ; 3
     scoreMed = a;          //     sta    scoreMed         ; 3                 = $20
     //  a = STARTTIME; 
@@ -1957,40 +2056,51 @@ loopPos:
     timerHi = a;           //     sta    timerHi          ; 3
 
     x = 27;                //     ldx    #27              ; 2
-    loopInit:
-    a = InitTab8[x]; //(&InitTab as *u8)[x];        //     lda    InitTab,x        ; 4
-    PatPtr[x] = a;         //     sta    harryPatPtr,x    ; 4
-    x--;                   //     dex                     ; 2
-    goto loopInit if !negative; //     bpl    .loopInit        ; 2³
+    do {
+    //  loopInit:
+      a = InitTab8[x]; //(&InitTab as *u8)[x];        //     lda    InitTab,x        ; 4
+      PatPtr[x] = a;         //     sta    harryPatPtr,x    ; 4
+      x--;                   //     dex                     ; 2
+    } while !negative;
+    //    goto loopInit if !negative; //     bpl    .loopInit        ; 2³
     a = FRAMERATE - 1; //     lda    #FRAMERATE-1     ; 2
     timerLo = a; //     sta    timerLo          ; 3
     a = 31; //     lda    #31              ; 2
     treasureCnt = a; //     sta    treasureCnt      ; 3
     a = 0b10100000; //     lda    #%10100000       ; 2                 3 lives
     livesPat = a; //     sta    livesPat         ; 3
+    // start scene is 0xc4 (196)
     a = RAND_SEED; //     lda    #RAND_SEED       ; 2                 set starting scene
     random = a;   //     sta    random           ; 3
+    // skip the left random
+    // not sure why this function is here... could save a byte by
+    // changing the start room to be one further across
+    // and skipping this event
     goto ContRandom if !zero; //     bne    ContRandom       ; 3
   }
   #[fallthrough] func LeftRandom() {
     // ; generate new random scene on the left:
-    loopRandom:
-    // ; random' = random >> 1 | (bit4^bit5^bit6^bit0) * $80
-    a = random;      //     lda    random           ; 3
-    a = a << 1;      //     asl                     ; 2
-    a = a ^ random;  //     eor    random           ; 3
-    a = a << 1;      //     asl                     ; 2
-    a = a ^ random;  //     eor    random           ; 3
-    a = a << 1;      //     asl                     ; 2
-    a = a << 1;      //     asl                     ; 2
-    a = a <<<<# 1;   //     rol                     ; 2
-    a = a ^ random;  //     eor    random           ; 3
-    a = a >>> 1;     //     lsr                     ; 2
-    random = random >>>># 1; //  ror    random           ; 5
-    x--;       //     dex                     ; 2
-    goto loopRandom if !negative; //    bpl    .loopRandom      ; 2³
+    do {
+      loopRandom:
+
+      // ; random' = random >> 1 | (bit4^bit5^bit6^bit0) * $80
+      a = random;      //     lda    random           ; 3
+      a = a << 1;      //     asl                     ; 2
+      a = a ^ random;  //     eor    random           ; 3
+      a = a << 1;      //     asl                     ; 2
+      a = a ^ random;  //     eor    random           ; 3
+      a = a << 1;      //     asl                     ; 2
+      a = a << 1;      //     asl                     ; 2
+      a = a <<<<# 1;   //     rol                     ; 2
+      a = a ^ random;  //     eor    random           ; 3
+      a = a >>> 1;     //     lsr                     ; 2
+      random = random >>>># 1; //  ror    random           ; 5
+      x--;       //     dex                     ; 2
+    } while !negative;
+    //    goto loopRandom if !negative; //    bpl    .loopRandom      ; 2³
   }
   ContRandom:
+  // setup the level
   a = 124; //    lda    #124             ; 2                 x-position of logs, fire, cobra or treasure
   xPosObject = a; //  sta    xPosObject       ; 3
   a = random; //    lda    random           ; 3
@@ -2061,14 +2171,16 @@ in rom @ 0xFca9 {
   func setDigitPtrs() {
     //SUBROUTINE
     x = 2; //    ldx    #2               ; 2                 -> 8
-    loopSet:
-    a = x; //    txa                     ; 2
-    a = a << 2; //  asl                     ; 2
-//    a = a << 1; //  asl                     ; 2
-    y = a; //  tay                     ; 2
-   BCD2DigitPtrs(); //  jsr    BCD2DigitPtrs    ; 6
-    x--; //  dex                     ; 2
-    goto loopSet if !negative; //  bpl    .loopSet         ; 2³
+    do {
+      //    loopSet:
+      a = x; //    txa                     ; 2
+      a = a << 2; //  asl                     ; 2
+      //    a = a << 1; //  asl                     ; 2
+      y = a; //  tay                     ; 2
+      BCD2DigitPtrs(); //  jsr    BCD2DigitPtrs    ; 6
+      x--; //  dex                     ; 2
+    } while !negative; 
+    //goto loopSet if !negative; //  bpl    .loopSet         ; 2³
     //  return; //  rts                     ; 6
   }
 

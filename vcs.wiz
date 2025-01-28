@@ -1,4 +1,5 @@
 import "banks";
+
 namespace vcs {
     namespace sync {
         var vsync @ 0x00 : u8;
@@ -36,14 +37,14 @@ namespace vcs {
 
         var triggers @ 0x3C : [u8; 2];
         var trigger1m30 @ 0x0C : u8;
-        var trigger1 @ 0x3C : u8;
+        var trigger1 @ 0x0C : u8;
         var trigger2 @ 0x3D : u8;
         let TRIGGER_JOY_FIRE = 0x80;
 
         var port_a @ 0x280 : u8;
         var port_b @ 0x282 : u8;
         var ddr_a @ 0x281 : u8;
-        var ddr_b @ 0x023 : u8;
+        var ddr_b @ 0x283 : u8;
 
         let PORT_A_JOY_UP = 0x10;
         let PORT_A_JOY_DOWN = 0x20;
@@ -208,9 +209,15 @@ namespace vcs {
         var missile1 @ 0x12 : u8;
         var missile2 @ 0x13 : u8;
         var ball @ 0x14 : u8;
+        var m0p0 @ 0x28 : u8;
+      	var m1p1 @ 0x29 : u8;
     }
 
     namespace collision {
+      	var missileplayer @ 0x00 : [u8;2];
+      	var playfieldball @ 0x02 : [u8;2];
+      	var missileplayfield @ 0x04 : [u8;2];
+      
         var clear @ 0x2C : u8;
 
         var missile1_vs_players @ 0x30 : u8;
@@ -232,62 +239,146 @@ namespace tiamirror {
     var ENABL @ 0xE01F : u8;
   }
 }
-let VSYNC = vcs.sync.vsync;
-let WSYNC = vcs.sync.wsync;
-let NUSIZ0 = vcs.control.player1;
-let NUSIZ1 = vcs.control.player2;
-let HMBL = vcs.hmove.ball;
-let RESP = vcs.reset.players;
-let RESP0 = vcs.reset.player1;
-let RESP1 = vcs.reset.player2;
-let HMOVE = vcs.hmove.apply;
-let HMP0 = vcs.hmove.player1;
-let HMP1 = vcs.hmove.player2;
-let REFP0 = vcs.reflect.player1;
-let REFP1 = vcs.reflect.player2;
-let CXCLR = vcs.collision.clear;
-let VDELP0 = vcs.vdelay.player1;
-let VDELP1 = vcs.vdelay.player2;
-let HMCLR = vcs.hmove.clear;
-let COLUP = vcs.color.players;
-let COLUP0 = vcs.color.player1;
-let COLUP1 = vcs.color.player2;
-let COLUPF = vcs.color.fg;
-let COLUBK = vcs.color.bg;
-let GRP0 = vcs.pattern.player1;
-let GRP1 = vcs.pattern.player2;
-let PF0 = vcs.pattern.playfield1;
-let PF1 = vcs.pattern.playfield2;
-let PF2 = vcs.pattern.playfield3;
 
-let ENABL = vcs.pattern.ball;
-let CXP0FB = vcs.collision.player1_vs_playfield;
-let CXP0FBm30 = vcs.collision.player1_vs_playfieldm30;
+extern var AUDC0 @ &vcs.audio.tone1 : u8;
+extern var AUDC1 @ &vcs.audio.tone2 : u8;
 
-let CXPPMM = vcs.collision.pvp_mvm;
-let CXPPMMm30 = vcs.collision.pvp_mvm_m30;
+extern var AUDF @ &vcs.audio.frequencies : [u8; 2];
+extern var AUDF0 @ &vcs.audio.frequency1 : u8;
 
-let CTRLPF = vcs.control.playfield;
-let RESBL = vcs.reset.ball;
+extern var AUDV @ &vcs.audio.volumes : [u8; 2];
+extern var AUDV0 @ &vcs.audio.volume1 : u8;
 
-let AUDV = vcs.audio.volumes;
-let AUDV0 = vcs.audio.volume1;
-let AUDV1 = vcs.audio.volume2;
+extern var COLUBK @ &vcs.color.bg : u8;
 
-let AUDF = vcs.audio.frequencies;
-let AUDF0 = vcs.audio.frequency1;
-let AUDF1 = vcs.audio.frequency2;
-let AUDC = vcs.audio.tones;
-let AUDC0 = vcs.audio.tone1;
-let AUDC1 = vcs.audio.tone2;
-let INTIM = vcs.timer.value;
-let TIM64T = vcs.timer.set64;
-let VBLANK = vcs.sync.vblank;
+extern var COLUP @ &vcs.color.players : [u8; 2];
+extern var COLUP0 @ &vcs.color.player1 : u8;
+extern var COLUP1 @ &vcs.color.player2 : u8;
 
-let SWCHB = vcs.io.port_b;
-let SWCHA = vcs.io.port_a;
-let INPT4 = vcs.io.trigger1;
-let INPT4m30 = vcs.io.trigger1m30;
+extern var COLUPF @ &vcs.color.fg : u8;
+
+extern var CTRLPF @ &vcs.control.playfield : u8;
+
+extern var CXCLR @ &vcs.collision.clear : u8;
+
+extern var CXP0FBm30 @ &vcs.collision.player1_vs_playfieldm30 : u8;
+extern var CXPPMMm30 @ &vcs.collision.pvp_mvm_m30 : u8;
+extern var CXPPMM @ &vcs.collision.pvp_mvm_m30 : u8;
+extern var CXM0FB @ &vcs.collision.missileplayfield : [u8;2];
+extern var CXM0P @ &vcs.collision.missileplayer : [u8;2];
+extern var CXP0FB @ &vcs.collision.playfieldball : [u8;2];
+
+extern var ENABL @ &vcs.pattern.ball : u8;
+extern var ENAM0 @ &vcs.pattern.missile1 : u8;
+extern var ENAM1 @ &vcs.pattern.missile2 : u8;
+
+extern var GRP0 @ &vcs.pattern.player1 : u8;
+extern var GRP1 @ &vcs.pattern.player2 : u8;
+
+extern var HMBL @ &vcs.hmove.ball : u8;
+extern var HMCLR @ &vcs.hmove.clear : u8;
+
+extern var HMOVE @ &vcs.hmove.apply : u8;
+
+extern var HMP0 @ &vcs.hmove.player1 : u8;
+extern var HMP1 @ &vcs.hmove.player2 : u8;
+
+extern var INPT4 @ &vcs.io.trigger1 : u8;
+
+extern var INPT4m30 @ &vcs.io.trigger1m30 : u8;
+
+extern var INTIM @ &vcs.timer.value : u8;
+
+extern var NUSIZ0 @ &vcs.control.player1 : u8;
+extern var NUSIZ1 @ &vcs.control.player2 : u8;
+
+extern var PF0 @ &vcs.pattern.playfield1 : u8;
+extern var PF1 @ &vcs.pattern.playfield2 : u8;
+extern var PF2 @ &vcs.pattern.playfield3 : u8;
+
+extern var RESBL @ &vcs.reset.ball : u8;
+extern var RESP @ &vcs.reset.players : [u8; 2];
+extern var RESP0 @ &vcs.reset.player1 : u8;
+extern var RESP1 @ &vcs.reset.player2 : u8;
+
+extern var REFP @ &vcs.reflect.player1 : [u8;2];
+extern var REFP0 @ &vcs.reflect.player1 : u8;
+extern var REFP1 @ &vcs.reflect.player2 : u8;
+
+extern var RESMP0 @ &vcs.reset.m0p0 : u8;
+extern var RESMP1 @ &vcs.reset.m1p1 : u8;
+
+extern var SWCHA @ &vcs.io.port_a : u8;
+
+extern var SWCHB @ &vcs.io.port_b : u8;
+extern var SWBCNT @ &vcs.io.ddr_b : u8;
+extern var TIM64T @ &vcs.timer.set64 : u8;
+
+extern var WSYNC @ &vcs.sync.wsync : u8;
+
+extern var VDELP0 @ &vcs.vdelay.player1 : u8;
+
+extern var VBLANK @ &vcs.sync.vblank : u8;
+extern var VSYNC @ &vcs.sync.vsync : u8;
+extern var VDELP1 @ &vcs.vdelay.player2 : u8;
+
+/*
+extern var VSYNC @ &vcs.sync.vsync : u8;
+extern var WSYNC @ &vcs.sync.wsync : u8;
+extern var NUSIZ0 @ &vcs.control.player1 : u8;
+extern var NUSIZ1 @ &vcs.control.player2 : u8;
+extern var HMBL @ &vcs.hmove.ball : u8;
+extern var RESP @ &vcs.reset.players : [u8; 2];
+extern var RESP0 @ &vcs.reset.player1 : u8;
+extern var RESP1 @ &vcs.reset.player2 : u8;
+extern var HMOVE @ &vcs.hmove.apply : u8;
+extern var HMP0 @ &vcs.hmove.player1 : u8;
+extern var HMP1 @ &vcs.hmove.player2 : u8;
+extern var REFP0 @ &vcs.reflect.player1 : u8;
+extern var REFP1 @ &vcs.reflect.player2 : u8;
+extern var CXCLR @ &vcs.collision.clear : u8;
+extern var VDELP0 @ &vcs.vdelay.player1 : u8;
+extern var VDELP1 @ &vcs.vdelay.player2 : u8;
+extern var HMCLR @ &vcs.hmove.clear : u8;
+extern var COLUP @ &vcs.color.players : [u8; 2];
+extern var COLUP0 @ &vcs.color.player1 : u8;
+extern var COLUP1 @ &vcs.color.player2 : u8;
+extern var COLUPF @ &vcs.color.fg : u8;
+extern var COLUBK @ &vcs.color.bg : u8;
+extern var GRP0 @ &vcs.pattern.player1 : u8;
+extern var GRP1 @ &vcs.pattern.player2 : u8;
+extern var PF0 @ &vcs.pattern.playfield1 : u8;
+extern var PF1 @ &vcs.pattern.playfield2 : u8;
+extern var PF2 @ &vcs.pattern.playfield3 : u8;
+
+extern var ENABL @ &vcs.pattern.ball : u8;
+extern var CXP0FB @ &vcs.collision.player1_vs_playfield : u8;
+extern var CXP0FBm30 @ &vcs.collision.player1_vs_playfieldm30 : u8;
+
+extern var CXPPMM @ &vcs.collision.pvp_mvm : u8;
+extern var CXPPMMm30 @ &vcs.collision.pvp_mvm_m30 : u8;
+
+extern var CTRLPF @ &vcs.control.playfield : u8;
+extern var RESBL @ &vcs.reset.ball : u8;
+
+extern var AUDV @ &vcs.audio.volumes : [u8; 2];
+extern var AUDV0 @ &vcs.audio.volume1 : u8;
+extern var AUDV1 @ &vcs.audio.volume2 : u8;
+
+extern var AUDF @ &vcs.audio.frequencies : [u8; 2];
+extern var AUDF0 @ &vcs.audio.frequency1 : u8;
+extern var AUDF1 @ &vcs.audio.frequency2 : u8;
+extern var AUDC @ &vcs.audio.tones : u8;
+extern var AUDC0 @ &vcs.audio.tone1 : u8;
+extern var AUDC1 @ &vcs.audio.tone2 : u8;
+extern var INTIM @ &vcs.timer.value : u8;
+extern var TIM64T @ &vcs.timer.set64 : u8;
+extern var VBLANK @ &vcs.sync.vblank : u8;
+
+extern var SWCHB @ &vcs.io.port_b : u8;
+extern var SWCHA @ &vcs.io.port_a : u8;
+extern var INPT4m30 @ &vcs.io.trigger1m30 : u8;
+*/
 
 namespace riot {
   
